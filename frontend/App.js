@@ -8,9 +8,30 @@ import 'react-native-gesture-handler';
 import LoginScreen from './screens/LoginScreen';
 import RegisterScreen from './screens/RegisterScreen';
 import HomeScreen from './screens/HomeScreen';
+import ExhibitionsScreen from './screens/ExhibitionsScreen';
+import ExhibitionDetailScreen from './screens/ExhibitionDetailScreen';
 
 const Stack = createNativeStackNavigator();
 const Drawer = createDrawerNavigator();
+const ExhibitionsStack = createNativeStackNavigator();
+
+// Nested Stack for Exhibitions to handle details
+function ExhibitionsStackNavigator() {
+  return (
+    <ExhibitionsStack.Navigator>
+      <ExhibitionsStack.Screen
+        name="ExhibitionsList"
+        component={ExhibitionsScreen}
+        options={{ headerShown: false }}
+      />
+      <ExhibitionsStack.Screen
+        name="ExhibitionDetail"
+        component={ExhibitionDetailScreen}
+        options={({ route }) => ({ title: route.params.title || 'Details' })}
+      />
+    </ExhibitionsStack.Navigator>
+  );
+}
 
 // Drawer Navigator for Epic 2: Main Navigation
 function DrawerNavigator({ setToken }) {
@@ -21,6 +42,11 @@ function DrawerNavigator({ setToken }) {
         component={HomeScreen}
         options={{ title: 'Art Museum' }}
         initialParams={{ setToken }}
+      />
+      <Drawer.Screen
+        name="ExhibitionsStack"
+        component={ExhibitionsStackNavigator}
+        options={{ title: 'Exhibitions & Collections' }}
       />
     </Drawer.Navigator>
   );

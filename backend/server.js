@@ -28,10 +28,9 @@ app.get('/api/protected', authenticateToken, (req, res) => {
   res.status(200).json({ message: `Access granted to protected route for user ID: ${req.user.id}` });
 });
 
-// Epic 2: Main Navigation & Discovery Routes (Placeholders)
-app.get('/api/exhibitions/featured', (req, res) => {
-  res.status(200).json({ message: 'Featured exhibitions endpoint' });
-});
+// Epic 2/3: Exhibitions, Discovery & Collections Routes
+const exhibitionRoutes = require('./routes/exhibitionRoutes');
+app.use('/api/exhibitions', exhibitionRoutes);
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
