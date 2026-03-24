@@ -18,13 +18,14 @@ app.get('/api/health', (req, res) => {
   res.status(200).json({ status: 'success', message: 'Backend is running' });
 });
 
-// Epic 1: Identity & Access Management Routes (Placeholders)
-app.post('/api/auth/login', (req, res) => {
-  res.status(200).json({ message: 'Login endpoint' });
-});
+// Epic 1: Identity & Access Management Routes
+const authRoutes = require('./routes/authRoutes');
+app.use('/api/auth', authRoutes);
 
-app.post('/api/auth/register', (req, res) => {
-  res.status(200).json({ message: 'Register endpoint' });
+// Protected Route Example using auth middleware
+const authenticateToken = require('./middleware/auth');
+app.get('/api/protected', authenticateToken, (req, res) => {
+  res.status(200).json({ message: `Access granted to protected route for user ID: ${req.user.id}` });
 });
 
 // Epic 2: Main Navigation & Discovery Routes (Placeholders)
