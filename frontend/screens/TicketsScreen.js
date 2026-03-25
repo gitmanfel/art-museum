@@ -1,11 +1,11 @@
-import { useAuth } from '../AuthContext';
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ActivityIndicator, Button, Alert, TouchableOpacity, ScrollView, Platform } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { useAuth } from '../AuthContext';
 
 const API_URL = 'http://10.0.2.2:5000/api';
 
-const TicketsScreen = ({ navigation, route }) => {
+const TicketsScreen = ({ navigation }) => {
   const { token } = useAuth();
   const [ticketTypes, setTicketTypes] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -84,12 +84,19 @@ const TicketsScreen = ({ navigation, route }) => {
 
       const data = await response.json();
       if (response.ok) {
-        Alert.alert('Success', `Tickets booked! Total charged: $${data.grandTotal.toFixed(2)}`);
         // Reset counters
         const resetQuantities = {};
         ticketTypes.forEach(t => { resetQuantities[t.id] = 0; });
         setQuantities(resetQuantities);
-        navigation.navigate('MyBookings');
+
+        // Navigate to Stripe Checkout Flow
+        navigation.navigate('Checkout', {
+          amount: data.grandTotal,
+          title: 'Admission Tickets',
+          successMessage: 'Tickets booked successfully! See you at the museum.',
+          onSuccessNavigateTo: 'MyBookings'
+        });
+
       } else {
         Alert.alert('Booking Failed', data.message || 'Error occurred');
       }
@@ -169,7 +176,8 @@ const styles = StyleSheet.create({
   headerTitle: { fontSize: 24, fontWeight: 'bold', marginBottom: 20 },
   dateContainer: { marginBottom: 20 },
   label: { fontSize: 16, fontWeight: 'bold', marginBottom: 10 },
-  dateInput: { backgroundColor: '#fff', padding: 10, borderRadius: 5, borderWidth: 1, borderColor: '#ccc' },
+  dateInput: { backgroundColor: '#fff', padding: 15, borderRadius: 5, borderWidth: 1, borderColor: '#ccc' },
+  dateText: { fontSize: 16 },
   ticketRow: { flexDirection: 'row', backgroundColor: '#fff', padding: 15, borderRadius: 8, marginBottom: 15, alignItems: 'center', justifyContent: 'space-between', elevation: 2 },
   ticketInfo: { flex: 1 },
   ticketName: { fontSize: 18, fontWeight: 'bold' },

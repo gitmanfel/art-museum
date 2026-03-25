@@ -17,6 +17,7 @@ import CartScreen from './screens/CartScreen';
 import TicketsScreen from './screens/TicketsScreen';
 import MyBookingsScreen from './screens/MyBookingsScreen';
 import MembershipsScreen from './screens/MembershipsScreen';
+import CheckoutScreen from './screens/CheckoutScreen';
 
 const Stack = createNativeStackNavigator();
 const Drawer = createDrawerNavigator();
@@ -60,6 +61,11 @@ function ShopStackNavigator() {
         component={CartScreen}
         options={{ title: 'Your Cart' }}
       />
+      <ShopStack.Screen
+        name="Checkout"
+        component={CheckoutScreen}
+        options={{ title: 'Checkout' }}
+      />
     </ShopStack.Navigator>
   );
 }
@@ -76,6 +82,11 @@ function TicketsStackNavigator() {
         name="MyBookings"
         component={MyBookingsScreen}
         options={{ title: 'My Bookings' }}
+      />
+      <TicketsStack.Screen
+        name="Checkout"
+        component={CheckoutScreen}
+        options={{ title: 'Checkout' }}
       />
     </TicketsStack.Navigator>
   );

@@ -11,6 +11,12 @@ const PORT = process.env.PORT || 5000;
 // Middleware
 app.use(helmet());
 app.use(cors());
+
+// Epic 7: Stripe Webhook must run BEFORE express.json() to parse the raw body Buffer
+const paymentController = require('./controllers/paymentController');
+app.post('/api/payments/webhook', express.raw({ type: 'application/json' }), paymentController.handleWebhook);
+
+// For all other routes, parse JSON bodies
 app.use(express.json());
 
 // Basic Route for testing
@@ -45,6 +51,10 @@ app.use('/api/tickets', ticketRoutes);
 // Epic 6: Memberships & RBAC
 const membershipRoutes = require('./routes/membershipRoutes');
 app.use('/api/memberships', membershipRoutes);
+
+// Epic 7: Payment Processing (Create Payment Intent)
+const paymentRoutes = require('./routes/paymentRoutes');
+app.use('/api/payments', paymentRoutes);
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);

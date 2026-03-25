@@ -1,10 +1,10 @@
-import { useAuth } from '../AuthContext';
 import React, { useState, useEffect } from 'react';
 import { View, Text, FlatList, StyleSheet, Image, ActivityIndicator, Button, Alert, TouchableOpacity } from 'react-native';
+import { useAuth } from '../AuthContext';
 
 const API_URL = 'http://10.0.2.2:5000/api';
 
-const CartScreen = ({ route }) => {
+const CartScreen = ({ navigation }) => {
   const { token } = useAuth();
   const [cartItems, setCartItems] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -63,8 +63,12 @@ const CartScreen = ({ route }) => {
       Alert.alert('Empty Cart', 'Add some items to your cart before checking out.');
       return;
     }
-    // Stripe checkout integration would go here (Epic 7)
-    Alert.alert('Checkout Flow', `Proceeding to checkout...\nTotal: $${calculateTotal().toFixed(2)}`);
+    navigation.navigate('Checkout', {
+      amount: calculateTotal(),
+      title: 'Museum Shop Order',
+      successMessage: 'Thank you! Your museum shop order has been placed successfully.',
+      onSuccessNavigateTo: 'Shop'
+    });
   };
 
   const renderItem = ({ item }) => (
@@ -108,7 +112,7 @@ const CartScreen = ({ route }) => {
               <Text style={styles.totalLabel}>Total:</Text>
               <Text style={styles.totalAmount}>${calculateTotal().toFixed(2)}</Text>
             </View>
-            <Button title="Checkout" onPress={handleCheckout} color="#28a745" />
+            <Button title="Proceed to Checkout" onPress={handleCheckout} color="#28a745" />
           </View>
         </>
       )}
