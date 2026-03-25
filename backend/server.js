@@ -32,6 +32,12 @@ app.get('/api/protected', authenticateToken, (req, res) => {
 const exhibitionRoutes = require('./routes/exhibitionRoutes');
 app.use('/api/exhibitions', exhibitionRoutes);
 
+// Epic 4: E-Commerce / Shop & Cart
+const shopRoutes = require('./routes/shopRoutes');
+const cartRoutes = require('./routes/cartRoutes');
+app.use('/api/shop', shopRoutes);
+app.use('/api/cart', cartRoutes);
+
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });

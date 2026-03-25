@@ -10,10 +10,14 @@ import RegisterScreen from './screens/RegisterScreen';
 import HomeScreen from './screens/HomeScreen';
 import ExhibitionsScreen from './screens/ExhibitionsScreen';
 import ExhibitionDetailScreen from './screens/ExhibitionDetailScreen';
+import ShopScreen from './screens/ShopScreen';
+import ProductDetailScreen from './screens/ProductDetailScreen';
+import CartScreen from './screens/CartScreen';
 
 const Stack = createNativeStackNavigator();
 const Drawer = createDrawerNavigator();
 const ExhibitionsStack = createNativeStackNavigator();
+const ShopStack = createNativeStackNavigator();
 
 // Nested Stack for Exhibitions to handle details
 function ExhibitionsStackNavigator() {
@@ -33,8 +37,32 @@ function ExhibitionsStackNavigator() {
   );
 }
 
-// Drawer Navigator for Epic 2: Main Navigation
-function DrawerNavigator({ setToken }) {
+// Nested Stack for Shop & Cart to handle Epic 4
+function ShopStackNavigator({ token }) {
+  return (
+    <ShopStack.Navigator>
+      <ShopStack.Screen
+        name="Shop"
+        component={ShopScreen}
+        options={{ headerShown: false }}
+        initialParams={{ token }}
+      />
+      <ShopStack.Screen
+        name="ProductDetail"
+        component={ProductDetailScreen}
+        options={({ route }) => ({ title: route.params.title || 'Product' })}
+      />
+      <ShopStack.Screen
+        name="Cart"
+        component={CartScreen}
+        options={{ title: 'Your Cart' }}
+      />
+    </ShopStack.Navigator>
+  );
+}
+
+// Drawer Navigator for Main Navigation
+function DrawerNavigator({ setToken, token }) {
   return (
     <Drawer.Navigator initialRouteName="Home">
       <Drawer.Screen
@@ -48,6 +76,12 @@ function DrawerNavigator({ setToken }) {
         component={ExhibitionsStackNavigator}
         options={{ title: 'Exhibitions & Collections' }}
       />
+      <Drawer.Screen
+        name="ShopStack"
+        options={{ title: 'Museum Shop' }}
+      >
+        {props => <ShopStackNavigator {...props} token={token} />}
+      </Drawer.Screen>
     </Drawer.Navigator>
   );
 }
@@ -77,7 +111,7 @@ export default function App() {
         ) : (
           // User is signed in
           <Stack.Screen name="MainDrawer">
-             {props => <DrawerNavigator {...props} setToken={setToken} />}
+             {props => <DrawerNavigator {...props} setToken={setToken} token={token} />}
           </Stack.Screen>
         )}
       </Stack.Navigator>

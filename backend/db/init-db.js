@@ -47,10 +47,35 @@ const initDb = async () => {
       );
     `;
 
+    const createProductsTableQuery = `
+      CREATE TABLE IF NOT EXISTS products (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        description TEXT,
+        price DECIMAL(10, 2) NOT NULL,
+        stock INTEGER NOT NULL DEFAULT 0,
+        image_url VARCHAR(255),
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      );
+    `;
+
+    const createCartItemsTableQuery = `
+      CREATE TABLE IF NOT EXISTS cart_items (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        product_id INTEGER REFERENCES products(id) ON DELETE CASCADE,
+        quantity INTEGER NOT NULL DEFAULT 1,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(user_id, product_id)
+      );
+    `;
+
     await pool.query(createUsersTableQuery);
     await pool.query(createExhibitionsTableQuery);
     await pool.query(createCollectionsTableQuery);
-    console.log('Database tables (users, exhibitions, collections) created or verified.');
+    await pool.query(createProductsTableQuery);
+    await pool.query(createCartItemsTableQuery);
+    console.log('Database tables (users, exhibitions, collections, products, cart_items) created or verified.');
 
     // 2. Seed Dummy Data for Exhibitions (Epic 3)
     console.log('Seeding dummy data...');
@@ -85,6 +110,22 @@ const initDb = async () => {
       console.log('Seeded collections data.');
     } else {
       console.log('Collections already seeded.');
+    }
+
+    // Check if products already exist (Epic 4)
+    const checkProducts = await pool.query('SELECT COUNT(*) FROM products');
+    if (parseInt(checkProducts.rows[0].count) === 0) {
+      const seedProductsQuery = `
+        INSERT INTO products (name, description, price, stock, image_url)
+        VALUES
+          ('Van Gogh Art Book', 'A comprehensive collection of Vincent van Gogh''s most famous works.', 45.00, 100, 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'),
+          ('Monet Water Lilies Poster', 'A high-quality print of Claude Monet''s Water Lilies.', 25.00, 50, 'https://images.unsplash.com/photo-1579546929518-9e396f3cc809?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'),
+          ('Museum Logo Mug', 'A classic ceramic mug featuring the Art Museum logo.', 15.00, 200, 'https://images.unsplash.com/photo-1514228742587-6b1558fcca3d?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80')
+      `;
+      await pool.query(seedProductsQuery);
+      console.log('Seeded products data.');
+    } else {
+      console.log('Products already seeded.');
     }
 
     console.log('Database initialization and seeding complete!');
