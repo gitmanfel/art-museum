@@ -70,12 +70,36 @@ const initDb = async () => {
       );
     `;
 
+    const createTicketTypesTableQuery = `
+      CREATE TABLE IF NOT EXISTS ticket_types (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(50) NOT NULL,
+        description VARCHAR(255),
+        price DECIMAL(10, 2) NOT NULL,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      );
+    `;
+
+    const createTicketBookingsTableQuery = `
+      CREATE TABLE IF NOT EXISTS ticket_bookings (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        ticket_type_id INTEGER REFERENCES ticket_types(id) ON DELETE RESTRICT,
+        quantity INTEGER NOT NULL CHECK (quantity > 0),
+        visit_date DATE NOT NULL,
+        total_price DECIMAL(10, 2) NOT NULL,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      );
+    `;
+
     await pool.query(createUsersTableQuery);
     await pool.query(createExhibitionsTableQuery);
     await pool.query(createCollectionsTableQuery);
     await pool.query(createProductsTableQuery);
     await pool.query(createCartItemsTableQuery);
-    console.log('Database tables (users, exhibitions, collections, products, cart_items) created or verified.');
+    await pool.query(createTicketTypesTableQuery);
+    await pool.query(createTicketBookingsTableQuery);
+    console.log('Database tables (users, exhibitions, collections, products, cart_items, ticket_types, ticket_bookings) created or verified.');
 
     // 2. Seed Dummy Data for Exhibitions (Epic 3)
     console.log('Seeding dummy data...');
@@ -126,6 +150,23 @@ const initDb = async () => {
       console.log('Seeded products data.');
     } else {
       console.log('Products already seeded.');
+    }
+
+    // Check if ticket_types already exist (Epic 5)
+    const checkTickets = await pool.query('SELECT COUNT(*) FROM ticket_types');
+    if (parseInt(checkTickets.rows[0].count) === 0) {
+      const seedTicketsQuery = `
+        INSERT INTO ticket_types (name, description, price)
+        VALUES
+          ('Adult', 'Ages 18-64', 25.00),
+          ('Senior', 'Ages 65+', 20.00),
+          ('Student', 'With valid ID', 15.00),
+          ('Child', 'Under 18', 0.00)
+      `;
+      await pool.query(seedTicketsQuery);
+      console.log('Seeded ticket types data.');
+    } else {
+      console.log('Ticket types already seeded.');
     }
 
     console.log('Database initialization and seeding complete!');

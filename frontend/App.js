@@ -13,11 +13,14 @@ import ExhibitionDetailScreen from './screens/ExhibitionDetailScreen';
 import ShopScreen from './screens/ShopScreen';
 import ProductDetailScreen from './screens/ProductDetailScreen';
 import CartScreen from './screens/CartScreen';
+import TicketsScreen from './screens/TicketsScreen';
+import MyBookingsScreen from './screens/MyBookingsScreen';
 
 const Stack = createNativeStackNavigator();
 const Drawer = createDrawerNavigator();
 const ExhibitionsStack = createNativeStackNavigator();
 const ShopStack = createNativeStackNavigator();
+const TicketsStack = createNativeStackNavigator();
 
 // Nested Stack for Exhibitions to handle details
 function ExhibitionsStackNavigator() {
@@ -61,6 +64,26 @@ function ShopStackNavigator({ token }) {
   );
 }
 
+// Nested Stack for Tickets to handle Epic 5
+function TicketsStackNavigator({ token }) {
+  return (
+    <TicketsStack.Navigator>
+      <TicketsStack.Screen
+        name="Tickets"
+        component={TicketsScreen}
+        options={{ headerShown: false }}
+        initialParams={{ token }}
+      />
+      <TicketsStack.Screen
+        name="MyBookings"
+        component={MyBookingsScreen}
+        options={{ title: 'My Bookings' }}
+        initialParams={{ token }}
+      />
+    </TicketsStack.Navigator>
+  );
+}
+
 // Drawer Navigator for Main Navigation
 function DrawerNavigator({ setToken, token }) {
   return (
@@ -81,6 +104,12 @@ function DrawerNavigator({ setToken, token }) {
         options={{ title: 'Museum Shop' }}
       >
         {props => <ShopStackNavigator {...props} token={token} />}
+      </Drawer.Screen>
+      <Drawer.Screen
+        name="TicketsStack"
+        options={{ title: 'Buy Tickets' }}
+      >
+        {props => <TicketsStackNavigator {...props} token={token} />}
       </Drawer.Screen>
     </Drawer.Navigator>
   );

@@ -38,6 +38,10 @@ const cartRoutes = require('./routes/cartRoutes');
 app.use('/api/shop', shopRoutes);
 app.use('/api/cart', cartRoutes);
 
+// Epic 5: Ticketing & Booking
+const ticketRoutes = require('./routes/ticketRoutes');
+app.use('/api/tickets', ticketRoutes);
+
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
