@@ -1,3 +1,4 @@
+import { useAuth } from '../AuthContext';
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Image, ScrollView, ActivityIndicator, Button, Alert } from 'react-native';
 

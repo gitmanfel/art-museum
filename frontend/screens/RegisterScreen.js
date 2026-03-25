@@ -1,3 +1,4 @@
+import { useAuth } from '../AuthContext';
 import React, { useState } from 'react';
 import { View, Text, TextInput, Button, StyleSheet, Alert, ActivityIndicator } from 'react-native';
 
@@ -8,7 +9,7 @@ const RegisterScreen = ({ navigation, route }) => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const setToken = route.params?.setToken;
+  const { setToken } = useAuth();
 
   const handleRegister = async () => {
     if (!email || !password || !confirmPassword) {

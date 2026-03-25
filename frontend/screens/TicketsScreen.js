@@ -1,3 +1,4 @@
+import { useAuth } from '../AuthContext';
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ActivityIndicator, Button, Alert, TouchableOpacity, ScrollView, Platform } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -5,7 +6,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 const API_URL = 'http://10.0.2.2:5000/api';
 
 const TicketsScreen = ({ navigation, route }) => {
-  const { token } = route.params;
+  const { token } = useAuth();
   const [ticketTypes, setTicketTypes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [date, setDate] = useState(new Date());

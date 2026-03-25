@@ -1,10 +1,11 @@
+import { useAuth } from '../AuthContext';
 import React, { useState, useEffect } from 'react';
 import { View, Text, Button, StyleSheet, Image, ActivityIndicator } from 'react-native';
 
 const API_URL = 'http://10.0.2.2:5000/api';
 
 const HomeScreen = ({ navigation, route }) => {
-  const setToken = route.params?.setToken;
+  const { setToken } = useAuth();
   const [featured, setFeatured] = useState(null);
   const [loading, setLoading] = useState(true);
 

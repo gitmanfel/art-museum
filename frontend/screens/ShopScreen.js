@@ -1,10 +1,11 @@
+import { useAuth } from '../AuthContext';
 import React, { useState, useEffect } from 'react';
 import { View, Text, FlatList, StyleSheet, Image, TouchableOpacity, ActivityIndicator, Button } from 'react-native';
 
 const API_URL = 'http://10.0.2.2:5000/api';
 
 const ShopScreen = ({ navigation, route }) => {
-  const { token } = route.params; // Pass token to shop so we can add to cart later
+  const { token } = useAuth(); // Pass token to shop so we can add to cart later
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
 

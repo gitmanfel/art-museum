@@ -1,3 +1,4 @@
+import { useAuth } from '../AuthContext';
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, FlatList, StyleSheet, ActivityIndicator, Alert } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
@@ -5,7 +6,7 @@ import { useFocusEffect } from '@react-navigation/native';
 const API_URL = 'http://10.0.2.2:5000/api';
 
 const MyBookingsScreen = ({ route }) => {
-  const { token } = route.params;
+  const { token } = useAuth();
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
 

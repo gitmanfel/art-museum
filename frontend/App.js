@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createDrawerNavigator } from '@react-navigation/drawer';
 import 'react-native-gesture-handler';
+import { AuthProvider, useAuth } from './AuthContext';
 
 // Screens
 import LoginScreen from './screens/LoginScreen';
@@ -15,14 +16,15 @@ import ProductDetailScreen from './screens/ProductDetailScreen';
 import CartScreen from './screens/CartScreen';
 import TicketsScreen from './screens/TicketsScreen';
 import MyBookingsScreen from './screens/MyBookingsScreen';
+import MembershipsScreen from './screens/MembershipsScreen';
 
 const Stack = createNativeStackNavigator();
 const Drawer = createDrawerNavigator();
 const ExhibitionsStack = createNativeStackNavigator();
 const ShopStack = createNativeStackNavigator();
 const TicketsStack = createNativeStackNavigator();
+const MembershipsStack = createNativeStackNavigator();
 
-// Nested Stack for Exhibitions to handle details
 function ExhibitionsStackNavigator() {
   return (
     <ExhibitionsStack.Navigator>
@@ -40,15 +42,13 @@ function ExhibitionsStackNavigator() {
   );
 }
 
-// Nested Stack for Shop & Cart to handle Epic 4
-function ShopStackNavigator({ token }) {
+function ShopStackNavigator() {
   return (
     <ShopStack.Navigator>
       <ShopStack.Screen
         name="Shop"
         component={ShopScreen}
         options={{ headerShown: false }}
-        initialParams={{ token }}
       />
       <ShopStack.Screen
         name="ProductDetail"
@@ -64,35 +64,42 @@ function ShopStackNavigator({ token }) {
   );
 }
 
-// Nested Stack for Tickets to handle Epic 5
-function TicketsStackNavigator({ token }) {
+function TicketsStackNavigator() {
   return (
     <TicketsStack.Navigator>
       <TicketsStack.Screen
         name="Tickets"
         component={TicketsScreen}
         options={{ headerShown: false }}
-        initialParams={{ token }}
       />
       <TicketsStack.Screen
         name="MyBookings"
         component={MyBookingsScreen}
         options={{ title: 'My Bookings' }}
-        initialParams={{ token }}
       />
     </TicketsStack.Navigator>
   );
 }
 
-// Drawer Navigator for Main Navigation
-function DrawerNavigator({ setToken, token }) {
+function MembershipsStackNavigator() {
+  return (
+    <MembershipsStack.Navigator>
+      <MembershipsStack.Screen
+        name="Memberships"
+        component={MembershipsScreen}
+        options={{ headerShown: false }}
+      />
+    </MembershipsStack.Navigator>
+  );
+}
+
+function DrawerNavigator() {
   return (
     <Drawer.Navigator initialRouteName="Home">
       <Drawer.Screen
         name="Home"
         component={HomeScreen}
         options={{ title: 'Art Museum' }}
-        initialParams={{ setToken }}
       />
       <Drawer.Screen
         name="ExhibitionsStack"
@@ -101,49 +108,50 @@ function DrawerNavigator({ setToken, token }) {
       />
       <Drawer.Screen
         name="ShopStack"
+        component={ShopStackNavigator}
         options={{ title: 'Museum Shop' }}
-      >
-        {props => <ShopStackNavigator {...props} token={token} />}
-      </Drawer.Screen>
+      />
       <Drawer.Screen
         name="TicketsStack"
+        component={TicketsStackNavigator}
         options={{ title: 'Buy Tickets' }}
-      >
-        {props => <TicketsStackNavigator {...props} token={token} />}
-      </Drawer.Screen>
+      />
+      <Drawer.Screen
+        name="MembershipsStack"
+        component={MembershipsStackNavigator}
+        options={{ title: 'Become a Member' }}
+      />
     </Drawer.Navigator>
   );
 }
 
-// Main Stack Navigator conditionally rendering Auth vs Main Flow
-export default function App() {
-  const [token, setToken] = useState(null);
+function RootNavigator() {
+  const { token } = useAuth();
 
   return (
     <NavigationContainer>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         {token == null ? (
-          // No token found, user isn't signed in
           <>
-            <Stack.Screen
-              name="Login"
-              component={LoginScreen}
-              initialParams={{ setToken }}
-            />
+            <Stack.Screen name="Login" component={LoginScreen} />
             <Stack.Screen
               name="Register"
               component={RegisterScreen}
               options={{ headerShown: true, title: 'Sign Up' }}
-              initialParams={{ setToken }}
             />
           </>
         ) : (
-          // User is signed in
-          <Stack.Screen name="MainDrawer">
-             {props => <DrawerNavigator {...props} setToken={setToken} token={token} />}
-          </Stack.Screen>
+          <Stack.Screen name="MainDrawer" component={DrawerNavigator} />
         )}
       </Stack.Navigator>
     </NavigationContainer>
+  );
+}
+
+export default function App() {
+  return (
+    <AuthProvider>
+      <RootNavigator />
+    </AuthProvider>
   );
 }

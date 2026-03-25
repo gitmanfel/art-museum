@@ -18,6 +18,8 @@ const initDb = async () => {
         email VARCHAR(255) UNIQUE NOT NULL,
         password_hash VARCHAR(255) NOT NULL,
         role VARCHAR(50) DEFAULT 'user',
+        membership_tier_id INTEGER,
+        membership_expires_at TIMESTAMP WITH TIME ZONE,
         created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
       );
     `;
@@ -92,14 +94,52 @@ const initDb = async () => {
       );
     `;
 
+    const createMembershipTiersTableQuery = `
+      CREATE TABLE IF NOT EXISTS membership_tiers (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(50) NOT NULL,
+        description TEXT,
+        price DECIMAL(10, 2) NOT NULL,
+        benefits TEXT[],
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      );
+    `;
+
     await pool.query(createUsersTableQuery);
+
     await pool.query(createExhibitionsTableQuery);
     await pool.query(createCollectionsTableQuery);
     await pool.query(createProductsTableQuery);
     await pool.query(createCartItemsTableQuery);
     await pool.query(createTicketTypesTableQuery);
     await pool.query(createTicketBookingsTableQuery);
-    console.log('Database tables (users, exhibitions, collections, products, cart_items, ticket_types, ticket_bookings) created or verified.');
+    await pool.query(createMembershipTiersTableQuery);
+
+    // In case users table already exists from previous runs, alter it to add new columns if they are missing
+    try {
+      await pool.query('ALTER TABLE users ADD COLUMN membership_tier_id INTEGER REFERENCES membership_tiers(id)');
+      console.log('Added membership_tier_id column to users table.');
+    } catch (e) {
+      // Columns likely already exist, ignore error
+      // console.log('membership_tier_id column likely already exists.');
+    }
+
+    try {
+      await pool.query('ALTER TABLE users ADD COLUMN membership_expires_at TIMESTAMP WITH TIME ZONE');
+      console.log('Added membership_expires_at column to users table.');
+    } catch (e) {
+      // Columns likely already exist, ignore error
+      // console.log('membership_expires_at column likely already exists.');
+    }
+
+    // Fix foreign key for users if the table was created before membership_tiers (if column existed but FK did not)
+    try {
+      await pool.query('ALTER TABLE users ADD CONSTRAINT fk_membership_tier FOREIGN KEY (membership_tier_id) REFERENCES membership_tiers(id) ON DELETE SET NULL');
+    } catch (e) {
+       // console.log('Foreign key constraint fk_membership_tier likely already exists.');
+    }
+
+    console.log('Database tables created or verified.');
 
     // 2. Seed Dummy Data for Exhibitions (Epic 3)
     console.log('Seeding dummy data...');
@@ -167,6 +207,22 @@ const initDb = async () => {
       console.log('Seeded ticket types data.');
     } else {
       console.log('Ticket types already seeded.');
+    }
+
+    // Check if membership_tiers already exist (Epic 6)
+    const checkMemberships = await pool.query('SELECT COUNT(*) FROM membership_tiers');
+    if (parseInt(checkMemberships.rows[0].count) === 0) {
+      const seedMembershipsQuery = `
+        INSERT INTO membership_tiers (name, description, price, benefits)
+        VALUES
+          ('Individual', 'Perfect for the solo art lover.', 75.00, ARRAY['Free admission for 1 adult', '10% discount in Museum Shop', 'Invitations to member-only previews']),
+          ('Dual', 'Enjoy the museum with a friend or partner.', 125.00, ARRAY['Free admission for 2 adults', '10% discount in Museum Shop', 'Invitations to member-only previews']),
+          ('Supporter', 'For our most dedicated patrons.', 250.00, ARRAY['Free admission for 2 adults and 4 guests', '20% discount in Museum Shop', 'Exclusive curator-led tours', 'Reciprocal admission at 100+ museums'])
+      `;
+      await pool.query(seedMembershipsQuery);
+      console.log('Seeded membership tiers data.');
+    } else {
+      console.log('Membership tiers already seeded.');
     }
 
     console.log('Database initialization and seeding complete!');

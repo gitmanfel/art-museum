@@ -1,10 +1,11 @@
+import { useAuth } from '../AuthContext';
 import React, { useState, useEffect } from 'react';
 import { View, Text, FlatList, StyleSheet, Image, ActivityIndicator, Button, Alert, TouchableOpacity } from 'react-native';
 
 const API_URL = 'http://10.0.2.2:5000/api';
 
 const CartScreen = ({ route }) => {
-  const { token } = route.params;
+  const { token } = useAuth();
   const [cartItems, setCartItems] = useState([]);
   const [loading, setLoading] = useState(true);
 

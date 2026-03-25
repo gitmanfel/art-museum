@@ -1,3 +1,4 @@
+import { useAuth } from '../AuthContext';
 import React, { useState } from 'react';
 import { View, Text, TextInput, Button, StyleSheet, Alert, ActivityIndicator } from 'react-native';
 
@@ -7,7 +8,7 @@ const LoginScreen = ({ navigation, route }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const setToken = route.params?.setToken; // Passed from App.js to lift state
+  const { setToken } = useAuth(); // Passed from App.js to lift state
 
   const handleLogin = async () => {
     if (!email || !password) {

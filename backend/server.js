@@ -42,6 +42,10 @@ app.use('/api/cart', cartRoutes);
 const ticketRoutes = require('./routes/ticketRoutes');
 app.use('/api/tickets', ticketRoutes);
 
+// Epic 6: Memberships & RBAC
+const membershipRoutes = require('./routes/membershipRoutes');
+app.use('/api/memberships', membershipRoutes);
+
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
