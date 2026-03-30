@@ -4,6 +4,7 @@ import {
   ActivityIndicator, Alert,
 } from 'react-native';
 import { useCart } from '../context/CartContext';
+import { createCheckoutIntent } from '../services/checkout';
 
 const CartScreen = ({ navigation }) => {
   const { items, total, loading, error, loadCart, removeItem, clearCart } = useCart();
@@ -25,6 +26,19 @@ const CartScreen = ({ navigation }) => {
       { text: 'Cancel', style: 'cancel' },
       { text: 'Clear all', style: 'destructive', onPress: clearCart },
     ]);
+  };
+
+  const handleCheckout = async () => {
+    try {
+      const intent = await createCheckoutIntent();
+      Alert.alert(
+        'Checkout Ready',
+        `Provider: ${intent.provider}\nAmount: $${(intent.amountCents / 100).toFixed(2)}\nStatus: ${intent.status}`
+      );
+    } catch (e) {
+      const msg = e.response?.data?.error || 'Could not start checkout.';
+      Alert.alert('Checkout Error', msg);
+    }
   };
 
   if (loading && items.length === 0) {
@@ -81,7 +95,7 @@ const CartScreen = ({ navigation }) => {
 
         <TouchableOpacity
           style={styles.checkoutBtn}
-          onPress={() => Alert.alert('Checkout', 'Payment integration coming soon.')}
+          onPress={handleCheckout}
         >
           <Text style={styles.checkoutBtnText}>Proceed to Checkout</Text>
         </TouchableOpacity>
