@@ -23,18 +23,24 @@
     <article class="detail">
       <h2>System Architecture Diagram</h2>
       <div class="system-diagram" aria-label="System architecture diagram">
+        <div class="system-legend" aria-label="Architecture legend">
+          <span class="system-legend-item"><span class="system-legend-dot client"></span>Client and UI</span>
+          <span class="system-legend-item"><span class="system-legend-dot application"></span>Application services</span>
+          <span class="system-legend-item"><span class="system-legend-dot data"></span>Persistence</span>
+          <span class="system-legend-item"><span class="system-legend-dot integration"></span>External and delivery</span>
+        </div>
         <section class="system-tier">
           <span class="system-tier-label">Experience Layer</span>
           <div class="system-row">
-            <article class="system-box">
+            <article class="system-box client">
               <h3>Visitor Experience</h3>
               <p>Home, exhibitions, artists, collections, shop, tickets, membership, and contact flows in the React Native client.</p>
             </article>
-            <article class="system-box">
+            <article class="system-box client">
               <h3>Authenticated Sessions</h3>
               <p>Login, registration, password reset, secure storage, cart state, and checkout status handled in client contexts.</p>
             </article>
-            <article class="system-box">
+            <article class="system-box client">
               <h3>Admin Views</h3>
               <p>Dashboard, content management, and order-related review paths exposed through role-aware frontend screens.</p>
             </article>
@@ -46,19 +52,19 @@
         <section class="system-tier">
           <span class="system-tier-label">Application Layer</span>
           <div class="system-row">
-            <article class="system-box">
+            <article class="system-box application">
               <h3>Route and Controller Layer</h3>
               <p>Express routes and controllers convert HTTP input into bounded feature handlers for auth, catalogue, cart, checkout, contact, and admin.</p>
             </article>
-            <article class="system-box">
+            <article class="system-box application">
               <h3>Security and Middleware</h3>
               <p>Auth middleware, rate limiting, startup checks, and request validation enforce access control and operational safety.</p>
             </article>
-            <article class="system-box">
+            <article class="system-box application">
               <h3>Service Layer</h3>
               <p>Payment abstraction, mailing, reset-email handling, monitoring, config checks, and startup status sit behind application services.</p>
             </article>
-            <article class="system-box">
+            <article class="system-box application">
               <h3>Repository Boundary</h3>
               <p>Repositories isolate persistence logic so SQL access stays separated from transport and business orchestration.</p>
             </article>
@@ -70,15 +76,15 @@
         <section class="system-tier">
           <span class="system-tier-label">Data and Integration Layer</span>
           <div class="system-row">
-            <article class="system-box">
+            <article class="system-box data">
               <h3>SQLite Core Data</h3>
               <p>Users, products, artists, artworks, collections, exhibitions, orders, cart state, reset tokens, contacts, and audit data.</p>
             </article>
-            <article class="system-box">
+            <article class="system-box integration">
               <h3>External Integrations</h3>
               <p>Payment provider integration, email delivery mode, and notification or monitoring hooks support operational workflows.</p>
             </article>
-            <article class="system-box">
+            <article class="system-box integration">
               <h3>Quality and Delivery</h3>
               <p>Backend tests, frontend tests, demo-health checks, CI workflows, and Pages publication form the delivery-side architecture.</p>
             </article>

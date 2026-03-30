@@ -273,6 +273,33 @@ h1 {
   pointer-events: none;
 }
 
+.system-legend {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.system-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
+.system-legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+}
+
 .system-tier {
   position: relative;
   z-index: 1;
@@ -323,6 +350,26 @@ h1 {
   width: 4px;
   border-radius: 14px 0 0 14px;
   background: linear-gradient(180deg, var(--accent), rgba(255, 210, 206, 0.45));
+}
+
+.system-box.client::before,
+.system-legend-dot.client {
+  background: linear-gradient(180deg, #4fc3ff, #89ddff);
+}
+
+.system-box.application::before,
+.system-legend-dot.application {
+  background: linear-gradient(180deg, #ff8a4f, #ffd2ce);
+}
+
+.system-box.data::before,
+.system-legend-dot.data {
+  background: linear-gradient(180deg, #57d6a4, #b9ffd9);
+}
+
+.system-box.integration::before,
+.system-legend-dot.integration {
+  background: linear-gradient(180deg, #f5c451, #fff0b3);
 }
 
 .system-box h3 {
@@ -411,6 +458,10 @@ h1 {
 
   .system-diagram.compact {
     padding: 14px;
+  }
+
+  .system-legend {
+    gap: 8px;
   }
 }
 
