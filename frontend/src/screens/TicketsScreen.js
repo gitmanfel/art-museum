@@ -1,28 +1,45 @@
-import React, { useState } from 'react';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert, ActivityIndicator } from 'react-native';
 import { useCart } from '../context/CartContext';
-
-const PRICING = {
-  adults: 8,
-  seniors: 5,
-  students: 5,
-};
-
-const TICKET_ITEM_IDS = {
-  adults:   'ticket-adults',
-  seniors:  'ticket-seniors',
-  students: 'ticket-students',
-};
+import { getTicketTypes } from '../services/catalogue';
 
 const TicketsScreen = ({ navigation }) => {
   const [selectedDate, setSelectedDate] = useState('Tomorrow');
-  const [counts, setCounts] = useState({
-    adults: 2,
-    seniors: 0,
-    students: 0,
-  });
+  const [ticketTypes, setTicketTypes] = useState([]);
+  const [counts, setCounts] = useState({});
+  const [loadingCatalogue, setLoadingCatalogue] = useState(true);
+  const [catalogueError, setCatalogueError] = useState('');
   const { addItem, loading } = useCart();
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadTickets = async () => {
+      setLoadingCatalogue(true);
+      setCatalogueError('');
+      try {
+        const data = await getTicketTypes();
+        if (!isMounted) return;
+        setTicketTypes(data);
+        setCounts(
+          data.reduce((acc, ticket) => {
+            acc[ticket.id] = ticket.id === 'ticket-adults' ? 2 : 0;
+            return acc;
+          }, {})
+        );
+      } catch (e) {
+        if (!isMounted) return;
+        setCatalogueError('Could not load ticket catalogue.');
+      } finally {
+        if (isMounted) setLoadingCatalogue(false);
+      }
+    };
+
+    loadTickets();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const increment = (type) => {
     setCounts((prev) => ({ ...prev, [type]: prev[type] + 1 }));
@@ -33,30 +50,37 @@ const TicketsScreen = ({ navigation }) => {
   };
 
   const calculateTotal = () => {
-    return (
-      counts.adults * PRICING.adults +
-      counts.seniors * PRICING.seniors +
-      counts.students * PRICING.students
-    );
+    return ticketTypes.reduce((sum, ticket) => {
+      const qty = counts[ticket.id] || 0;
+      return sum + qty * ticket.price;
+    }, 0);
   };
 
-  const renderCounterRow = (title, subtitle, type) => (
+  const renderCounterRow = (ticket) => (
     <View style={styles.counterRow}>
       <View>
-        <Text style={styles.counterTitle}>{title}</Text>
-        {subtitle ? <Text style={styles.counterSubtitle}>{subtitle}</Text> : null}
+        <Text style={styles.counterTitle}>{ticket.name}</Text>
+        {ticket.description ? <Text style={styles.counterSubtitle}>{ticket.description}</Text> : null}
       </View>
       <View style={styles.quantitySelector}>
-        <TouchableOpacity onPress={() => decrement(type)} style={styles.qtyBtn}>
+        <TouchableOpacity onPress={() => decrement(ticket.id)} style={styles.qtyBtn}>
           <Text style={styles.qtyBtnText}>-</Text>
         </TouchableOpacity>
-        <Text style={styles.qtyText}>{counts[type]}</Text>
-        <TouchableOpacity onPress={() => increment(type)} style={styles.qtyBtn}>
+        <Text style={styles.qtyText}>{counts[ticket.id] || 0}</Text>
+        <TouchableOpacity onPress={() => increment(ticket.id)} style={styles.qtyBtn}>
           <Text style={styles.qtyBtnText}>+</Text>
         </TouchableOpacity>
       </View>
     </View>
   );
+
+  if (loadingCatalogue) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#ff4c4c" />
+      </View>
+    );
+  }
 
   return (
     <ScrollView style={styles.container}>
@@ -90,9 +114,8 @@ const TicketsScreen = ({ navigation }) => {
 
       {/* Counters */}
       <View style={styles.countersContainer}>
-        {renderCounterRow('Adults', '', 'adults')}
-        {renderCounterRow('Seniors', '65+ with ID', 'seniors')}
-        {renderCounterRow('Students', 'with ID', 'students')}
+        {catalogueError ? <Text style={styles.errorText}>{catalogueError}</Text> : null}
+        {ticketTypes.map(renderCounterRow)}
       </View>
 
       {/* Total Section */}
@@ -112,8 +135,8 @@ const TicketsScreen = ({ navigation }) => {
             return;
           }
           const results = await Promise.all(
-            entries.map(([type, qty]) =>
-              addItem({ itemType: 'ticket', itemId: TICKET_ITEM_IDS[type], quantity: qty })
+            entries.map(([ticketId, qty]) =>
+              addItem({ itemType: 'ticket', itemId: ticketId, quantity: qty })
             )
           );
           const anyFailed = results.some(r => !r.success);
@@ -139,6 +162,17 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff',
     padding: 20,
+  },
+  loadingContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#fff',
+  },
+  errorText: {
+    color: '#ff4c4c',
+    marginBottom: 16,
+    fontSize: 13,
   },
   header: {
     marginTop: 20,

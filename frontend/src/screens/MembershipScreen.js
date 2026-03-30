@@ -1,19 +1,40 @@
-import React from 'react';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, Dimensions, Alert, ActivityIndicator } from 'react-native';
 import { useCart } from '../context/CartContext';
+import { getMembershipTiers } from '../services/catalogue';
 
 const { width } = Dimensions.get('window');
 
-const MEMBERSHIP_TIERS = [
-  { id: 'membership-individual', name: 'Individual', price: '$75', description: '$60 tax deductible' },
-  { id: 'membership-dual',       name: 'Dual',       price: '$125', description: '$60 tax deductible' },
-  { id: 'membership-supporter',  name: 'Supporter',  price: '$300', description: '$60 tax deductible' },
-];
-
 const MembershipScreen = ({ navigation }) => {
+  const [tiers, setTiers] = useState([]);
   const [selectedTier, setSelectedTier] = useState(null);
+  const [loadingCatalogue, setLoadingCatalogue] = useState(true);
+  const [catalogueError, setCatalogueError] = useState('');
   const { addItem, loading } = useCart();
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadTiers = async () => {
+      setLoadingCatalogue(true);
+      setCatalogueError('');
+      try {
+        const data = await getMembershipTiers();
+        if (!isMounted) return;
+        setTiers(data);
+      } catch (e) {
+        if (!isMounted) return;
+        setCatalogueError('Could not load membership tiers.');
+      } finally {
+        if (isMounted) setLoadingCatalogue(false);
+      }
+    };
+
+    loadTiers();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const handleJoin = async () => {
     if (!selectedTier) {
@@ -47,15 +68,23 @@ const MembershipScreen = ({ navigation }) => {
         </Text>
 
         <View style={styles.tiersList}>
-          {MEMBERSHIP_TIERS.map((tier) => (
+          {loadingCatalogue ? (
+            <View style={styles.catalogueLoadingRow}>
+              <ActivityIndicator color="#ff4c4c" />
+            </View>
+          ) : null}
+
+          {catalogueError ? <Text style={styles.errorText}>{catalogueError}</Text> : null}
+
+          {tiers.map((tier) => (
             <TouchableOpacity
               key={tier.id}
               style={[styles.tierRow, selectedTier === tier.id && styles.tierRowSelected]}
               onPress={() => setSelectedTier(tier.id)}
             >
               <View>
-                <Text style={styles.tierTitle}>{tier.name}—{tier.price}</Text>
-                <Text style={styles.tierDescription}>{tier.description}</Text>
+                <Text style={styles.tierTitle}>{tier.name} - ${Number(tier.price).toFixed(0)}</Text>
+                <Text style={styles.tierDescription}>${Number(tier.tax_deductible || 0).toFixed(0)} tax deductible</Text>
               </View>
               <Text style={styles.chevronIcon}>›</Text>
             </TouchableOpacity>
@@ -65,7 +94,7 @@ const MembershipScreen = ({ navigation }) => {
         <TouchableOpacity 
           style={styles.joinButton}
           onPress={handleJoin}
-          disabled={loading}
+          disabled={loading || loadingCatalogue || tiers.length === 0}
         >
           {loading
             ? <ActivityIndicator color="#fff" />
@@ -124,6 +153,15 @@ const styles = StyleSheet.create({
   },
   tiersList: {
     marginBottom: 40,
+  },
+  catalogueLoadingRow: {
+    paddingVertical: 12,
+    alignItems: 'center',
+  },
+  errorText: {
+    color: '#ff4c4c',
+    fontSize: 13,
+    marginBottom: 8,
   },
   tierRow: {
     flexDirection: 'row',
