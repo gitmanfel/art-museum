@@ -1,5 +1,7 @@
 # art-museum
 
+> **👉 [View Project Portfolio & Demo](PORTFOLIO.md)** — Comprehensive showcase of features, architecture, and technical implementation without source code exposure.
+
 ## Environment variables
 
 ### Password reset URL
