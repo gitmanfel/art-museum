@@ -38,9 +38,10 @@ const CartScreen = ({ navigation }) => {
         await Promise.all([loadCart(), refreshProfile()]);
       }
 
-      navigation.navigate('CheckoutStatus', {
+      navigation.navigate('Payment', {
         paymentIntentId: intent.paymentIntentId,
         provider: intent.provider,
+        clientSecret: intent.clientSecret,
         amountCents: intent.amountCents,
         initialStatus: intent.status,
         initialFulfilled: intent.fulfilled,

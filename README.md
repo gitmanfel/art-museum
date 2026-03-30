@@ -20,6 +20,10 @@
 ### JWT security (production)
 - `JWT_SECRET`: Required in production. Backend startup fails fast if missing or using fallback secret.
 
+### Frontend Stripe payment sheet
+- `EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY`: Stripe publishable key used by the Expo app to open Payment Sheet.
+	- When omitted, the frontend falls back to the non-live checkout review/status flow.
+
 ## CI preflight check
 
 - Run `npm run check:config` in `backend/` to validate production-critical runtime configuration.
