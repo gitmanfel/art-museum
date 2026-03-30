@@ -47,6 +47,16 @@
           <span class="system-legend-item"><span class="system-legend-dot data"></span>Persistence</span>
           <span class="system-legend-item"><span class="system-legend-dot integration"></span>External and delivery</span>
         </div>
+        <div class="system-lanes" aria-label="User and admin lanes">
+          <article class="system-lane">
+            <strong>User Interaction Lane</strong>
+            <p>Public visitors and signed-in customers move through browsing, account, cart, checkout, tickets, and membership paths.</p>
+          </article>
+          <article class="system-lane">
+            <strong>Admin Operations Lane</strong>
+            <p>Admin users move through role-aware dashboards, content management, operational review, diagnostics, and order-related controls.</p>
+          </article>
+        </div>
         <section class="system-tier">
           <div class="system-tier-head">
             <span class="system-tier-label">Experience Layer</span>
@@ -129,6 +139,28 @@
           <article class="system-sidepanel-card">
             <strong>Operational Controls</strong>
             <p>JWT auth, rate limiting, startup checks, config validation, and diagnostics protect the system across request, service, and deployment paths.</p>
+          </article>
+        </div>
+        <div class="system-steps" aria-label="Primary request flow steps">
+          <article class="system-step">
+            <span class="system-step-number">1</span>
+            <strong>User Action</strong>
+            <p>A visitor or admin action begins in the React Native client through a domain-specific screen or workflow.</p>
+          </article>
+          <article class="system-step">
+            <span class="system-step-number">2</span>
+            <strong>Protected Request</strong>
+            <p>The client sends an HTTP request with auth context, while middleware and route handlers validate the request boundary.</p>
+          </article>
+          <article class="system-step">
+            <span class="system-step-number">3</span>
+            <strong>Service Execution</strong>
+            <p>Controllers and services apply business logic, invoke provider abstractions, and coordinate persistence work.</p>
+          </article>
+          <article class="system-step">
+            <span class="system-step-number">4</span>
+            <strong>Persistence and Result</strong>
+            <p>Repositories read or write SQLite data, after which the response returns to the client and updates the UI state.</p>
           </article>
         </div>
         <div class="system-footer">
