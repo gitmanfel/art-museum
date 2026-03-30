@@ -1,0 +1,132 @@
+:root {
+  --bg: #0f1115;
+  --panel: #171a21;
+  --panel-2: #1f2430;
+  --text: #e8edf5;
+  --muted: #a8b2c5;
+  --accent: #ff5a4f;
+  --accent-2: #ffd2ce;
+  --border: #2a3140;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  background: radial-gradient(circle at top left, #1a1f2b, var(--bg) 42%);
+  color: var(--text);
+}
+
+.wrap {
+  width: min(1100px, 92vw);
+  margin: 0 auto;
+  padding: 44px 0 64px;
+}
+
+.badge {
+  display: inline-block;
+  letter-spacing: 0.14em;
+  font-size: 0.72rem;
+  border: 1px solid var(--accent);
+  color: var(--accent-2);
+  border-radius: 999px;
+  padding: 6px 10px;
+}
+
+h1 {
+  margin: 12px 0 8px;
+  font-size: clamp(1.8rem, 3.6vw, 2.8rem);
+}
+
+.sub {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.65;
+}
+
+.top-actions {
+  margin-top: 18px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.btn {
+  display: inline-block;
+  text-decoration: none;
+  border: 1px solid var(--accent);
+  background: var(--accent);
+  color: white;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-weight: 700;
+}
+
+.btn.alt {
+  background: transparent;
+  color: var(--accent-2);
+}
+
+.grid {
+  margin-top: 22px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 14px;
+}
+
+.card {
+  background: linear-gradient(180deg, var(--panel), var(--panel-2));
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.card h2 {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.card p {
+  margin: 8px 0 14px;
+  color: var(--muted);
+  line-height: 1.55;
+  font-size: 0.95rem;
+}
+
+.link {
+  color: var(--accent-2);
+  text-decoration: none;
+  font-weight: 700;
+}
+
+footer {
+  margin-top: 22px;
+  color: #8f99ad;
+  font-size: 0.9rem;
+}
+
+article.detail {
+  margin-top: 18px;
+  background: linear-gradient(180deg, var(--panel), var(--panel-2));
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 18px;
+}
+
+article.detail h2 {
+  margin-top: 0;
+}
+
+ul.clean {
+  margin: 10px 0 0;
+  padding-left: 18px;
+  color: var(--muted);
+  line-height: 1.7;
+}
+
+code {
+  color: #ffd7c9;
+}

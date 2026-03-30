@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Art Museum Publish Playbook</title>
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <main class="wrap">
+    <span class="badge">PUBLISH PLAYBOOK</span>
+    <h1>GitHub Pages Deployment Steps</h1>
+    <p class="sub">How this site is published and how to troubleshoot workflow failures.</p>
+    <article class="detail">
+      <h2>Publication flow</h2>
+      <ul class="clean">
+        <li>Push changes to <code>docs/</code> on <code>main</code>.</li>
+        <li>Workflow <code>.github/workflows/pages.yml</code> uploads docs artifact.</li>
+        <li>GitHub deploys the artifact to Pages URL.</li>
+      </ul>
+      <h2>Troubleshooting</h2>
+      <ul class="clean">
+        <li>Check Settings -> Pages -> Source is GitHub Actions.</li>
+        <li>Check Actions logs for the Pages workflow run.</li>
+        <li>Verify docs files exist and commit reached main branch.</li>
+      </ul>
+    </article>
+    <div class="top-actions">
+      <a class="btn" href="./index.html">Back to Hub</a>
+    </div>
+  </main>
+</body>
+</html>

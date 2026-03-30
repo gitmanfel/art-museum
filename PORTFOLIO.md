@@ -17,6 +17,16 @@
 - 🔐 **Admin Dashboard** — Role-based access with audit logging for all administrative actions
 - 📱 **Cross-Platform UI** — React Native app running on iOS, Android, and Web
 
+### Publication Pages
+
+- **Public Hub:** `https://gitmanfel.github.io/art-museum/`
+- **Case Study:** `https://gitmanfel.github.io/art-museum/portfolio-showcase.html`
+- **Recruiter Edition:** `https://gitmanfel.github.io/art-museum/portfolio-recruiter.html`
+- **Hiring Manager Edition:** `https://gitmanfel.github.io/art-museum/portfolio-hiring-manager.html`
+- **Architecture Page:** `https://gitmanfel.github.io/art-museum/architecture.html`
+- **Share Kit:** `https://gitmanfel.github.io/art-museum/share-kit.html`
+- **Publish Playbook:** `https://gitmanfel.github.io/art-museum/publish-playbook.html`
+
 ---
 
 ## 📊 Key Metrics
