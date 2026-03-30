@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, StyleSheet, TextInput, Text, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, TextInput, Text, TouchableOpacity, Alert, Platform } from 'react-native';
 import { createDrawerNavigator, DrawerContentScrollView, DrawerItemList } from '@react-navigation/drawer';
 import HomeScreen from '../screens/HomeScreen';
 import CollectionsScreen from '../screens/CollectionsScreen';
@@ -57,6 +57,9 @@ const CustomDrawerContent = (props) => {
 
   const handleLogout = async () => {
     await clearSession();
+    if (Platform.OS !== 'web') {
+      Alert.alert('Signed out', 'You have been logged out.');
+    }
     props.navigation.closeDrawer();
     props.navigation.getParent()?.navigate('Login');
   };

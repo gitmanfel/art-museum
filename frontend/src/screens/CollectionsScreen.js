@@ -65,6 +65,7 @@ const CollectionsScreen = () => {
       <Text style={styles.collectionDescription} numberOfLines={2}>
         {item.description || 'Explore highlights from this collection.'}
       </Text>
+      <Text style={styles.collectionAction}>View details</Text>
     </TouchableOpacity>
   );
 
@@ -206,6 +207,12 @@ const styles = StyleSheet.create({
     color: '#666',
     fontSize: 12,
     lineHeight: 16,
+  },
+  collectionAction: {
+    marginTop: 6,
+    color: '#333',
+    fontSize: 11,
+    textDecorationLine: 'underline',
   },
   filtersRow: {
     flexDirection: 'row',

@@ -232,6 +232,7 @@ const ShopScreen = ({ navigation }) => {
                 />
                 <Text numberOfLines={1} style={styles.productCardName}>{item.name}</Text>
                 <Text style={styles.productCardPrice}>${Number(item.price).toFixed(2)}</Text>
+                <Text style={styles.productCardAction}>View details</Text>
               </Pressable>
             ))}
           </ScrollView>
@@ -406,6 +407,12 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#ff4c4c',
     fontWeight: '700',
+  },
+  productCardAction: {
+    marginTop: 4,
+    fontSize: 10,
+    color: '#333',
+    textDecorationLine: 'underline',
   },
 });
 

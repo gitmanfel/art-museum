@@ -71,6 +71,7 @@ const ArtistsScreen = () => {
         <Text style={styles.cardName}>{item.name}</Text>
         <Text style={styles.cardDates}>{item.dates}</Text>
         <Text style={styles.cardMedium}>{item.medium}</Text>
+        <Text style={styles.cardAction}>View details</Text>
       </View>
     </TouchableOpacity>
   );
@@ -121,6 +122,12 @@ const styles = StyleSheet.create({
   cardName:     { fontSize: 13, fontWeight: 'bold', color: '#000', marginBottom: 2 },
   cardDates:    { fontSize: 11, color: '#aaa', marginBottom: 1 },
   cardMedium:   { fontSize: 11, color: '#ff4c4c', fontWeight: '600' },
+  cardAction: {
+    marginTop: 6,
+    fontSize: 11,
+    color: '#333',
+    textDecorationLine: 'underline',
+  },
   reviewPanel: {
     marginTop: 8,
     backgroundColor: '#fff6f6',
