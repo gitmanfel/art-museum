@@ -25,10 +25,12 @@ const ContentManagementScreen = () => {
   const [collectionName, setCollectionName] = useState('');
   const [collectionCategory, setCollectionCategory] = useState('');
   const [editingCollectionId, setEditingCollectionId] = useState(null);
+  const [editingCollectionUpdatedAt, setEditingCollectionUpdatedAt] = useState(null);
 
   const [exhibitionName, setExhibitionName] = useState('');
   const [exhibitionArtist, setExhibitionArtist] = useState('');
   const [editingExhibitionId, setEditingExhibitionId] = useState(null);
+  const [editingExhibitionUpdatedAt, setEditingExhibitionUpdatedAt] = useState(null);
 
   const loadData = useCallback(async () => {
     const [collectionsData, exhibitionsData] = await Promise.all([
@@ -47,12 +49,14 @@ const ContentManagementScreen = () => {
 
   const resetCollectionForm = () => {
     setEditingCollectionId(null);
+    setEditingCollectionUpdatedAt(null);
     setCollectionName('');
     setCollectionCategory('');
   };
 
   const resetExhibitionForm = () => {
     setEditingExhibitionId(null);
+    setEditingExhibitionUpdatedAt(null);
     setExhibitionName('');
     setExhibitionArtist('');
   };
@@ -68,6 +72,7 @@ const ContentManagementScreen = () => {
         await updateAdminCollection(editingCollectionId, {
           name: collectionName.trim(),
           category: collectionCategory.trim() || null,
+          expectedUpdatedAt: editingCollectionUpdatedAt,
         });
         Alert.alert('Updated', 'Collection updated successfully.');
       } else {
@@ -96,6 +101,7 @@ const ContentManagementScreen = () => {
         await updateAdminExhibition(editingExhibitionId, {
           name: exhibitionName.trim(),
           artist: exhibitionArtist.trim() || null,
+          expectedUpdatedAt: editingExhibitionUpdatedAt,
         });
         Alert.alert('Updated', 'Exhibition updated successfully.');
       } else {
@@ -217,6 +223,7 @@ const ContentManagementScreen = () => {
                 style={styles.actionBtn}
                 onPress={() => {
                   setEditingCollectionId(item.id);
+                  setEditingCollectionUpdatedAt(item.updated_at || null);
                   setCollectionName(item.name || '');
                   setCollectionCategory(item.category || '');
                 }}
@@ -244,6 +251,7 @@ const ContentManagementScreen = () => {
                 style={styles.actionBtn}
                 onPress={() => {
                   setEditingExhibitionId(item.id);
+                  setEditingExhibitionUpdatedAt(item.updated_at || null);
                   setExhibitionName(item.name || '');
                   setExhibitionArtist(item.artist || '');
                 }}

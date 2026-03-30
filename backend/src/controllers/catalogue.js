@@ -29,9 +29,11 @@ exports.getExhibitions = (req, res) => {
     artist: req.query.artist,
     start_date: req.query.start_date ? parseInt(req.query.start_date) : undefined,
     end_date: req.query.end_date ? parseInt(req.query.end_date) : undefined,
+    page: req.query.page ? parseInt(req.query.page) : 1,
+    pageSize: req.query.pageSize ? parseInt(req.query.pageSize) : 20,
   };
-  const exhibitions = catalogueRepo.getExhibitions(filters);
-  return res.status(200).json({ exhibitions });
+  const result = catalogueRepo.getExhibitions(filters);
+  return res.status(200).json({ exhibitions: result.rows, meta: result.meta });
 };
 
 exports.getExhibition = (req, res) => {
@@ -46,9 +48,11 @@ exports.getCollections = (req, res) => {
     category: req.query.category,
     era_start: req.query.era_start ? parseInt(req.query.era_start) : undefined,
     era_end: req.query.era_end ? parseInt(req.query.era_end) : undefined,
+    page: req.query.page ? parseInt(req.query.page) : 1,
+    pageSize: req.query.pageSize ? parseInt(req.query.pageSize) : 20,
   };
-  const collections = catalogueRepo.getCollections(filters);
-  return res.status(200).json({ collections });
+  const result = catalogueRepo.getCollections(filters);
+  return res.status(200).json({ collections: result.rows, meta: result.meta });
 };
 
 exports.getCollection = (req, res) => {

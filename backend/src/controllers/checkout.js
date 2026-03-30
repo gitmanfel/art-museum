@@ -4,6 +4,7 @@ const cartRepo = require('../db/cartRepository');
 const catalogueRepo = require('../db/catalogueRepository');
 const orderRepo = require('../db/orderRepository');
 const userRepo = require('../db/userRepository');
+const { recordCheckoutAttempt } = require('../services/monitoring');
 const { createPaymentIntent, constructWebhookEvent, PROVIDER_STRIPE, PROVIDER_MOCK } = require('../services/paymentProvider');
 
 const calcCartTotal = (items) =>
@@ -60,6 +61,8 @@ const fulfillPaymentIntent = ({ intent, provider }) => {
       });
     });
 
+  catalogueRepo.clearReservationsForUser(userId);
+
   // Cart is only cleared after confirmed payment success.
   cartRepo.clearCart(userId);
 
@@ -86,6 +89,22 @@ exports.createCheckoutIntent = async (req, res) => {
   const amountCents = Math.round(total * 100);
   const currency = 'usd';
   const hasMembership = items.some(i => i.item_type === 'membership');
+
+  const reservation = catalogueRepo.reserveInventoryForCheckout({
+    userId: req.user.userId,
+    items,
+    ttlSeconds: 900,
+  });
+
+  if (!reservation.ok) {
+    recordCheckoutAttempt(false);
+    return res.status(409).json({
+      error: 'Inventory reservation failed',
+      reason: reservation.reason,
+      itemId: reservation.itemId,
+      availableStock: reservation.availableStock,
+    });
+  }
 
   try {
     const intent = await createPaymentIntent({
@@ -125,6 +144,8 @@ exports.createCheckoutIntent = async (req, res) => {
       });
     }
 
+    recordCheckoutAttempt(true);
+
     return res.status(200).json({
       provider: intent.provider,
       paymentIntentId: intent.id,
@@ -132,12 +153,15 @@ exports.createCheckoutIntent = async (req, res) => {
       amountCents: intent.amount,
       currency: intent.currency,
       status: intent.status,
+      reservationExpiresAt: reservation.expiresAt,
       cartTotal: total,
       fulfilled: fulfillment.fulfilled,
       entitlementsChanged: fulfillment.entitlementsChanged,
       userRole: fulfillment.userRole,
     });
   } catch (error) {
+    catalogueRepo.clearReservationsForUser(req.user.userId);
+    recordCheckoutAttempt(false);
     if (error.code === 'stripe_not_configured') {
       return res.status(503).json({ error: 'Payment provider is unavailable' });
     }
@@ -187,8 +211,10 @@ exports.handleWebhook = (req, res) => {
       intent: event.data?.object,
       provider: signature ? PROVIDER_STRIPE : PROVIDER_MOCK,
     });
+    recordCheckoutAttempt(true);
     return res.status(200).json({ received: true, ...fulfillment });
   } catch (error) {
+    recordCheckoutAttempt(false);
     if (error.code === 'missing_payment_metadata') {
       return res.status(400).json({ error: 'Missing required payment metadata' });
     }

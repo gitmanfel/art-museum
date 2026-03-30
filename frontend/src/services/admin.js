@@ -20,16 +20,22 @@ export const getAdminOverview = async () => {
   return data;
 };
 
-export const getAdminOrders = async (limit = 50) => {
+export const getAdminOrders = async ({ page = 1, pageSize = 20, search = '' } = {}) => {
   const api = await getAdminApi();
-  const { data } = await api.get('/orders', { params: { limit } });
-  return data.orders;
+  const { data } = await api.get('/orders', { params: { page, pageSize, search } });
+  return data;
 };
 
-export const getAdminUsers = async (limit = 50) => {
+export const getAdminUsers = async ({ page = 1, pageSize = 20, search = '' } = {}) => {
   const api = await getAdminApi();
-  const { data } = await api.get('/users', { params: { limit } });
-  return data.users;
+  const { data } = await api.get('/users', { params: { page, pageSize, search } });
+  return data;
+};
+
+export const getAdminAuditLogs = async ({ page = 1, pageSize = 20, search = '' } = {}) => {
+  const api = await getAdminApi();
+  const { data } = await api.get('/audit-logs', { params: { page, pageSize, search } });
+  return data;
 };
 
 export const createAdminCollection = async (payload) => {

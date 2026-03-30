@@ -28,6 +28,47 @@ const listOrders = (limit = 50) =>
     .prepare('SELECT * FROM orders ORDER BY created_at DESC LIMIT ?')
     .all(limit);
 
+const listOrdersPaged = ({ page = 1, pageSize = 20, search = '' } = {}) => {
+  const db = getDb();
+  const safePage = Math.max(1, Number(page) || 1);
+  const safePageSize = Math.max(1, Math.min(100, Number(pageSize) || 20));
+  const offset = (safePage - 1) * safePageSize;
+
+  const where = [];
+  const params = [];
+  if (search && String(search).trim()) {
+    where.push('(payment_intent_id LIKE ? OR provider LIKE ? OR currency LIKE ?)');
+    const term = `%${String(search).trim()}%`;
+    params.push(term, term, term);
+  }
+
+  const whereSql = where.length ? `WHERE ${where.join(' AND ')}` : '';
+
+  const rows = db
+    .prepare(
+      `SELECT *
+       FROM orders
+       ${whereSql}
+       ORDER BY created_at DESC
+       LIMIT ? OFFSET ?`
+    )
+    .all(...params, safePageSize, offset);
+
+  const total = db
+    .prepare(`SELECT COUNT(*) as count FROM orders ${whereSql}`)
+    .get(...params).count;
+
+  return {
+    rows,
+    meta: {
+      page: safePage,
+      pageSize: safePageSize,
+      total,
+      totalPages: Math.max(1, Math.ceil(total / safePageSize)),
+    },
+  };
+};
+
 const getOrderMetrics = () => {
   const row = getDb()
     .prepare(
@@ -51,5 +92,6 @@ module.exports = {
   findByPaymentIntentIdForUser,
   createFulfilledOrder,
   listOrders,
+  listOrdersPaged,
   getOrderMetrics,
 };

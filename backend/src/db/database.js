@@ -106,7 +106,8 @@ const applySchema = (db) => {
       start_date  INTEGER,
       end_date    INTEGER,
       location_floor TEXT,
-      image_url   TEXT
+      image_url   TEXT,
+      updated_at  INTEGER NOT NULL DEFAULT (unixepoch())
     );
 
     CREATE TABLE IF NOT EXISTS artworks (
@@ -127,7 +128,8 @@ const applySchema = (db) => {
       category      TEXT,
       era_start     INTEGER,
       era_end       INTEGER,
-      image_url     TEXT
+      image_url     TEXT,
+      updated_at    INTEGER NOT NULL DEFAULT (unixepoch())
     );
 
     CREATE TABLE IF NOT EXISTS collection_artworks (
@@ -171,10 +173,42 @@ const applySchema = (db) => {
     );
 
     CREATE INDEX IF NOT EXISTS idx_orders_user ON orders(user_id);
+
+    CREATE TABLE IF NOT EXISTS inventory_reservations (
+      id          INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id     TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      product_id  TEXT NOT NULL REFERENCES products(id) ON DELETE CASCADE,
+      quantity    INTEGER NOT NULL,
+      expires_at  INTEGER NOT NULL,
+      created_at  INTEGER NOT NULL DEFAULT (unixepoch())
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_inv_res_user ON inventory_reservations(user_id);
+    CREATE INDEX IF NOT EXISTS idx_inv_res_product_expires ON inventory_reservations(product_id, expires_at);
+
+    CREATE TABLE IF NOT EXISTS admin_audit_logs (
+      id           INTEGER PRIMARY KEY AUTOINCREMENT,
+      actor_user_id TEXT NOT NULL,
+      actor_email  TEXT,
+      action       TEXT NOT NULL,
+      entity_type  TEXT NOT NULL,
+      entity_id    TEXT NOT NULL,
+      before_json  TEXT,
+      after_json   TEXT,
+      created_at   INTEGER NOT NULL DEFAULT (unixepoch())
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_admin_audit_created ON admin_audit_logs(created_at);
+    CREATE INDEX IF NOT EXISTS idx_admin_audit_entity ON admin_audit_logs(entity_type, entity_id);
   `);
 
   // Migration for existing databases created before inventory tracking.
   ensureColumn(db, 'products', 'stock_quantity', 'INTEGER NOT NULL DEFAULT 0');
+  ensureColumn(db, 'collections', 'updated_at', 'INTEGER NOT NULL DEFAULT 0');
+  ensureColumn(db, 'exhibitions', 'updated_at', 'INTEGER NOT NULL DEFAULT 0');
+
+  db.exec('UPDATE collections SET updated_at = unixepoch() WHERE updated_at = 0');
+  db.exec('UPDATE exhibitions SET updated_at = unixepoch() WHERE updated_at = 0');
 
   seedCatalogue(db);
 };

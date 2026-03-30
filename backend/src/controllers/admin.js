@@ -4,6 +4,8 @@ const crypto = require('crypto');
 const userRepo = require('../db/userRepository');
 const orderRepo = require('../db/orderRepository');
 const catalogueRepo = require('../db/catalogueRepository');
+const adminAuditRepo = require('../db/adminAuditRepository');
+const { getMetrics } = require('../services/monitoring');
 
 exports.getOverview = (req, res) => {
   const userCounts = userRepo.getUserCounts();
@@ -16,19 +18,35 @@ exports.getOverview = (req, res) => {
     orders: orderMetrics,
     lowStockProducts,
     recentOrders,
+    runtimeMetrics: getMetrics(),
   });
 };
 
 exports.getOrders = (req, res) => {
-  const limit = Math.max(1, Math.min(200, Number(req.query.limit) || 50));
-  const orders = orderRepo.listOrders(limit);
-  return res.status(200).json({ orders });
+  const result = orderRepo.listOrdersPaged({
+    page: req.query.page,
+    pageSize: req.query.pageSize,
+    search: req.query.search,
+  });
+  return res.status(200).json({ orders: result.rows, meta: result.meta });
 };
 
 exports.getUsers = (req, res) => {
-  const limit = Math.max(1, Math.min(200, Number(req.query.limit) || 50));
-  const users = userRepo.listUsers(limit);
-  return res.status(200).json({ users });
+  const result = userRepo.listUsersPaged({
+    page: req.query.page,
+    pageSize: req.query.pageSize,
+    search: req.query.search,
+  });
+  return res.status(200).json({ users: result.rows, meta: result.meta });
+};
+
+exports.getAuditLogs = (req, res) => {
+  const result = adminAuditRepo.listAuditLogs({
+    page: req.query.page,
+    pageSize: req.query.pageSize,
+    search: req.query.search,
+  });
+  return res.status(200).json({ auditLogs: result.rows, meta: result.meta });
 };
 
 exports.createCollection = (req, res) => {
@@ -46,12 +64,26 @@ exports.createCollection = (req, res) => {
     image_url: image_url || null,
   });
 
+  adminAuditRepo.logAction({
+    actorUserId: req.user.userId,
+    actorEmail: req.user.email,
+    action: 'collection.create',
+    entityType: 'collection',
+    entityId: collection.id,
+    after: collection,
+  });
+
   return res.status(201).json({ collection });
 };
 
 exports.updateCollection = (req, res) => {
   const existing = catalogueRepo.getCollectionById(req.params.id);
   if (!existing) return res.status(404).json({ error: 'Collection not found' });
+
+  const expectedUpdatedAt = Number(req.body.expectedUpdatedAt);
+  if (!Number.isFinite(expectedUpdatedAt)) {
+    return res.status(400).json({ error: 'expectedUpdatedAt is required for optimistic locking' });
+  }
 
   const collection = catalogueRepo.updateCollection(req.params.id, {
     name: req.body.name || existing.name,
@@ -60,14 +92,40 @@ exports.updateCollection = (req, res) => {
     era_start: req.body.era_start !== undefined ? Number(req.body.era_start) : existing.era_start,
     era_end: req.body.era_end !== undefined ? Number(req.body.era_end) : existing.era_end,
     image_url: req.body.image_url ?? existing.image_url,
+  }, expectedUpdatedAt);
+
+  if (collection?.ok === false && collection.reason === 'conflict') {
+    return res.status(409).json({ error: 'Conflict: collection changed by another admin' });
+  }
+
+  adminAuditRepo.logAction({
+    actorUserId: req.user.userId,
+    actorEmail: req.user.email,
+    action: 'collection.update',
+    entityType: 'collection',
+    entityId: req.params.id,
+    before: existing,
+    after: collection,
   });
 
   return res.status(200).json({ collection });
 };
 
 exports.deleteCollection = (req, res) => {
+  const existing = catalogueRepo.getCollectionById(req.params.id);
   const deleted = catalogueRepo.deleteCollection(req.params.id);
   if (!deleted) return res.status(404).json({ error: 'Collection not found' });
+
+  adminAuditRepo.logAction({
+    actorUserId: req.user.userId,
+    actorEmail: req.user.email,
+    action: 'collection.delete',
+    entityType: 'collection',
+    entityId: req.params.id,
+    before: existing,
+    after: null,
+  });
+
   return res.status(200).json({ deleted: true });
 };
 
@@ -87,12 +145,26 @@ exports.createExhibition = (req, res) => {
     image_url: image_url || null,
   });
 
+  adminAuditRepo.logAction({
+    actorUserId: req.user.userId,
+    actorEmail: req.user.email,
+    action: 'exhibition.create',
+    entityType: 'exhibition',
+    entityId: exhibition.id,
+    after: exhibition,
+  });
+
   return res.status(201).json({ exhibition });
 };
 
 exports.updateExhibition = (req, res) => {
   const existing = catalogueRepo.getExhibitionById(req.params.id);
   if (!existing) return res.status(404).json({ error: 'Exhibition not found' });
+
+  const expectedUpdatedAt = Number(req.body.expectedUpdatedAt);
+  if (!Number.isFinite(expectedUpdatedAt)) {
+    return res.status(400).json({ error: 'expectedUpdatedAt is required for optimistic locking' });
+  }
 
   const exhibition = catalogueRepo.updateExhibition(req.params.id, {
     name: req.body.name || existing.name,
@@ -102,13 +174,39 @@ exports.updateExhibition = (req, res) => {
     end_date: req.body.end_date !== undefined ? Number(req.body.end_date) : existing.end_date,
     location_floor: req.body.location_floor ?? existing.location_floor,
     image_url: req.body.image_url ?? existing.image_url,
+  }, expectedUpdatedAt);
+
+  if (exhibition?.ok === false && exhibition.reason === 'conflict') {
+    return res.status(409).json({ error: 'Conflict: exhibition changed by another admin' });
+  }
+
+  adminAuditRepo.logAction({
+    actorUserId: req.user.userId,
+    actorEmail: req.user.email,
+    action: 'exhibition.update',
+    entityType: 'exhibition',
+    entityId: req.params.id,
+    before: existing,
+    after: exhibition,
   });
 
   return res.status(200).json({ exhibition });
 };
 
 exports.deleteExhibition = (req, res) => {
+  const existing = catalogueRepo.getExhibitionById(req.params.id);
   const deleted = catalogueRepo.deleteExhibition(req.params.id);
   if (!deleted) return res.status(404).json({ error: 'Exhibition not found' });
+
+  adminAuditRepo.logAction({
+    actorUserId: req.user.userId,
+    actorEmail: req.user.email,
+    action: 'exhibition.delete',
+    entityType: 'exhibition',
+    entityId: req.params.id,
+    before: existing,
+    after: null,
+  });
+
   return res.status(200).json({ deleted: true });
 };

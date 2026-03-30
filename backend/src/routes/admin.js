@@ -11,6 +11,7 @@ router.use(requireAuth, requireAdmin);
 router.get('/overview', adminCtrl.getOverview);
 router.get('/orders', adminCtrl.getOrders);
 router.get('/users', adminCtrl.getUsers);
+router.get('/audit-logs', adminCtrl.getAuditLogs);
 router.post('/collections', adminCtrl.createCollection);
 router.patch('/collections/:id', adminCtrl.updateCollection);
 router.delete('/collections/:id', adminCtrl.deleteCollection);

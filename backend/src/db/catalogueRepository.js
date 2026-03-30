@@ -1,6 +1,7 @@
 'use strict';
 
 const { getDb } = require('./database');
+const { recordLowStockEvent } = require('../services/monitoring');
 
 // ---------- Ticket types ----------
 const getAllTicketTypes = () =>
@@ -41,7 +42,72 @@ const decrementProductStock = ({ id, quantity }) => {
 
   db.prepare('UPDATE products SET stock_quantity = stock_quantity - ? WHERE id = ?')
     .run(quantity, id);
+
+  const updated = db.prepare('SELECT stock_quantity FROM products WHERE id = ?').get(id);
+  recordLowStockEvent({ productId: id, stockQuantity: Number(updated.stock_quantity || 0) });
+
   return { ok: true };
+};
+
+const clearExpiredReservations = () => {
+  getDb()
+    .prepare('DELETE FROM inventory_reservations WHERE expires_at <= unixepoch()')
+    .run();
+};
+
+const clearReservationsForUser = (userId) => {
+  getDb()
+    .prepare('DELETE FROM inventory_reservations WHERE user_id = ?')
+    .run(userId);
+};
+
+const reserveInventoryForCheckout = ({ userId, items, ttlSeconds = 900 }) => {
+  const db = getDb();
+  const products = items.filter((item) => item.item_type === 'product');
+  if (products.length === 0) return { ok: true };
+
+  const tx = db.transaction(() => {
+    clearExpiredReservations();
+    clearReservationsForUser(userId);
+
+    for (const item of products) {
+      const product = db.prepare('SELECT id, stock_quantity FROM products WHERE id = ?').get(item.item_id);
+      if (!product) {
+        return { ok: false, reason: 'product_not_found', itemId: item.item_id };
+      }
+
+      const reservedByOthers = db
+        .prepare(
+          `SELECT COALESCE(SUM(quantity), 0) as qty
+           FROM inventory_reservations
+           WHERE product_id = ? AND user_id != ? AND expires_at > unixepoch()`
+        )
+        .get(item.item_id, userId).qty;
+
+      const available = Number(product.stock_quantity || 0) - Number(reservedByOthers || 0);
+      if (item.quantity > available) {
+        return {
+          ok: false,
+          reason: 'insufficient_stock',
+          itemId: item.item_id,
+          availableStock: Math.max(0, available),
+        };
+      }
+    }
+
+    const expiresAt = Math.floor(Date.now() / 1000) + ttlSeconds;
+    const insert = db.prepare(
+      'INSERT INTO inventory_reservations (user_id, product_id, quantity, expires_at) VALUES (?, ?, ?, ?)'
+    );
+
+    for (const item of products) {
+      insert.run(userId, item.item_id, item.quantity, expiresAt);
+    }
+
+    return { ok: true, expiresAt };
+  });
+
+  return tx();
 };
 
 const getLowStockProducts = (threshold = 5) => {
@@ -71,6 +137,9 @@ const getExhibitions = (filters = {}) => {
   const db = getDb();
   let sql = 'SELECT * FROM exhibitions WHERE 1=1';
   const params = [];
+  const safePage = Math.max(1, Number(filters.page) || 1);
+  const safePageSize = Math.max(1, Math.min(100, Number(filters.pageSize) || 20));
+  const offset = (safePage - 1) * safePageSize;
 
   if (filters.search) {
     sql += ' AND (name LIKE ? OR artist LIKE ? OR description LIKE ?)';
@@ -93,15 +162,29 @@ const getExhibitions = (filters = {}) => {
     params.push(filters.end_date);
   }
 
-  sql += ' ORDER BY start_date DESC, name ASC';
-  const exhibitions = db.prepare(sql).all(...params);
+  sql += ' ORDER BY start_date DESC, name ASC LIMIT ? OFFSET ?';
+  const exhibitions = db.prepare(sql).all(...params, safePageSize, offset);
+
+  const countSql = sql
+    .replace(' ORDER BY start_date DESC, name ASC LIMIT ? OFFSET ?', '')
+    .replace('SELECT *', 'SELECT COUNT(*) as count');
+  const total = db.prepare(countSql).get(...params).count;
+
   const artworksStmt = db.prepare(
     'SELECT * FROM artworks WHERE exhibition_id = ? ORDER BY year DESC, title ASC'
   );
-  return exhibitions.map((exhibition) => ({
-    ...exhibition,
-    artworks: artworksStmt.all(exhibition.id),
-  }));
+  return {
+    rows: exhibitions.map((exhibition) => ({
+      ...exhibition,
+      artworks: artworksStmt.all(exhibition.id),
+    })),
+    meta: {
+      page: safePage,
+      pageSize: safePageSize,
+      total,
+      totalPages: Math.max(1, Math.ceil(total / safePageSize)),
+    },
+  };
 };
 
 /**
@@ -124,18 +207,18 @@ const getExhibitionById = (id) => {
 const createExhibition = ({ id, name, artist = null, description = null, start_date = null, end_date = null, location_floor = null, image_url = null }) => {
   const db = getDb();
   db.prepare(
-    `INSERT INTO exhibitions (id, name, artist, description, start_date, end_date, location_floor, image_url)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
+    `INSERT INTO exhibitions (id, name, artist, description, start_date, end_date, location_floor, image_url, updated_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, unixepoch())`
   ).run(id, name, artist, description, start_date, end_date, location_floor, image_url);
   return getExhibitionById(id);
 };
 
-const updateExhibition = (id, fields) => {
+const updateExhibition = (id, fields, expectedUpdatedAt) => {
   const db = getDb();
-  db.prepare(
+  const result = db.prepare(
     `UPDATE exhibitions
-       SET name = ?, artist = ?, description = ?, start_date = ?, end_date = ?, location_floor = ?, image_url = ?
-     WHERE id = ?`
+       SET name = ?, artist = ?, description = ?, start_date = ?, end_date = ?, location_floor = ?, image_url = ?, updated_at = unixepoch()
+     WHERE id = ? AND updated_at = ?`
   ).run(
     fields.name,
     fields.artist,
@@ -144,8 +227,10 @@ const updateExhibition = (id, fields) => {
     fields.end_date,
     fields.location_floor,
     fields.image_url,
-    id
+    id,
+    expectedUpdatedAt
   );
+  if (result.changes === 0) return { ok: false, reason: 'conflict' };
   return getExhibitionById(id);
 };
 
@@ -168,6 +253,9 @@ const getCollections = (filters = {}) => {
   const db = getDb();
   let sql = 'SELECT * FROM collections WHERE 1=1';
   const params = [];
+  const safePage = Math.max(1, Number(filters.page) || 1);
+  const safePageSize = Math.max(1, Math.min(100, Number(filters.pageSize) || 20));
+  const offset = (safePage - 1) * safePageSize;
 
   if (filters.search) {
     sql += ' AND (name LIKE ? OR description LIKE ?)';
@@ -190,8 +278,21 @@ const getCollections = (filters = {}) => {
     params.push(filters.era_end);
   }
 
-  sql += ' ORDER BY name ASC';
-  return db.prepare(sql).all(...params);
+  sql += ' ORDER BY name ASC LIMIT ? OFFSET ?';
+  const rows = db.prepare(sql).all(...params, safePageSize, offset);
+  const countSql = sql
+    .replace(' ORDER BY name ASC LIMIT ? OFFSET ?', '')
+    .replace('SELECT *', 'SELECT COUNT(*) as count');
+  const total = db.prepare(countSql).get(...params).count;
+  return {
+    rows,
+    meta: {
+      page: safePage,
+      pageSize: safePageSize,
+      total,
+      totalPages: Math.max(1, Math.ceil(total / safePageSize)),
+    },
+  };
 };
 
 /**
@@ -217,18 +318,18 @@ const getCollectionById = (id) => {
 const createCollection = ({ id, name, description = null, category = null, era_start = null, era_end = null, image_url = null }) => {
   const db = getDb();
   db.prepare(
-    `INSERT INTO collections (id, name, description, category, era_start, era_end, image_url)
-     VALUES (?, ?, ?, ?, ?, ?, ?)`
+    `INSERT INTO collections (id, name, description, category, era_start, era_end, image_url, updated_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, unixepoch())`
   ).run(id, name, description, category, era_start, era_end, image_url);
   return getCollectionById(id);
 };
 
-const updateCollection = (id, fields) => {
+const updateCollection = (id, fields, expectedUpdatedAt) => {
   const db = getDb();
-  db.prepare(
+  const result = db.prepare(
     `UPDATE collections
-       SET name = ?, description = ?, category = ?, era_start = ?, era_end = ?, image_url = ?
-     WHERE id = ?`
+       SET name = ?, description = ?, category = ?, era_start = ?, era_end = ?, image_url = ?, updated_at = unixepoch()
+     WHERE id = ? AND updated_at = ?`
   ).run(
     fields.name,
     fields.description,
@@ -236,8 +337,10 @@ const updateCollection = (id, fields) => {
     fields.era_start,
     fields.era_end,
     fields.image_url,
-    id
+    id,
+    expectedUpdatedAt
   );
+  if (result.changes === 0) return { ok: false, reason: 'conflict' };
   return getCollectionById(id);
 };
 
@@ -258,6 +361,8 @@ module.exports = {
   getProductById,
   updateProductStock,
   decrementProductStock,
+  reserveInventoryForCheckout,
+  clearReservationsForUser,
   getLowStockProducts,
   getExhibitions,
   getExhibitionById,

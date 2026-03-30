@@ -56,6 +56,47 @@ const listUsers = (limit = 50) => {
     .all(limit);
 };
 
+const listUsersPaged = ({ page = 1, pageSize = 20, search = '' } = {}) => {
+  const db = getDb();
+  const safePage = Math.max(1, Number(page) || 1);
+  const safePageSize = Math.max(1, Math.min(100, Number(pageSize) || 20));
+  const offset = (safePage - 1) * safePageSize;
+
+  const where = [];
+  const params = [];
+  if (search && String(search).trim()) {
+    where.push('(email LIKE ? OR role LIKE ?)');
+    const term = `%${String(search).trim()}%`;
+    params.push(term, term);
+  }
+
+  const whereSql = where.length ? `WHERE ${where.join(' AND ')}` : '';
+
+  const rows = db
+    .prepare(
+      `SELECT id, email, role, created_at
+       FROM users
+       ${whereSql}
+       ORDER BY created_at DESC
+       LIMIT ? OFFSET ?`
+    )
+    .all(...params, safePageSize, offset);
+
+  const total = db
+    .prepare(`SELECT COUNT(*) as count FROM users ${whereSql}`)
+    .get(...params).count;
+
+  return {
+    rows,
+    meta: {
+      page: safePage,
+      pageSize: safePageSize,
+      total,
+      totalPages: Math.max(1, Math.ceil(total / safePageSize)),
+    },
+  };
+};
+
 const getUserCounts = () => {
   const totalUsers = getDb().prepare('SELECT COUNT(*) as count FROM users').get().count;
   const members = getDb().prepare("SELECT COUNT(*) as count FROM users WHERE role = 'member'").get().count;
@@ -67,4 +108,4 @@ const getUserCounts = () => {
   };
 };
 
-module.exports = { findByEmail, findById, create, updatePassword, updateRole, listUsers, getUserCounts };
+module.exports = { findByEmail, findById, create, updatePassword, updateRole, listUsers, listUsersPaged, getUserCounts };
