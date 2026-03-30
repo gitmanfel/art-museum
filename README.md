@@ -22,6 +22,7 @@
 	- `npm run start:backend`
 - Start frontend web from root:
 	- `npm run start:frontend:web`
+	- Uses fixed port `8096` for stable demo startup.
 
 ## Environment variables
 

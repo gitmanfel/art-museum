@@ -7,7 +7,8 @@
     "test": "jest",
     "start": "expo start",
     "web": "expo start --web",
-    "web:clear": "expo start --web --clear"
+    "web:clear": "expo start --web --clear",
+    "web:demo": "expo start --web --port 8096"
   },
   "keywords": [],
   "author": "",
