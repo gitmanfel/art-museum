@@ -24,3 +24,23 @@ export const getProduct = async (id) => {
   const { data } = await getCatalogueApi().get(`/products/${id}`);
   return data.product;
 };
+
+export const getCollections = async (filters = {}) => {
+  const { data } = await getCatalogueApi().get('/collections', { params: filters });
+  return data.collections;
+};
+
+export const getCollection = async (id) => {
+  const { data } = await getCatalogueApi().get(`/collections/${id}`);
+  return data.collection;
+};
+
+export const getExhibitions = async (filters = {}) => {
+  const { data } = await getCatalogueApi().get('/exhibitions', { params: filters });
+  return data.exhibitions;
+};
+
+export const getExhibition = async (id) => {
+  const { data } = await getCatalogueApi().get(`/exhibitions/${id}`);
+  return data.exhibition;
+};

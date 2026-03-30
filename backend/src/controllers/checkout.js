@@ -1,6 +1,7 @@
 'use strict';
 
 const cartRepo = require('../db/cartRepository');
+const catalogueRepo = require('../db/catalogueRepository');
 const orderRepo = require('../db/orderRepository');
 const userRepo = require('../db/userRepository');
 const { createPaymentIntent, constructWebhookEvent, PROVIDER_STRIPE, PROVIDER_MOCK } = require('../services/paymentProvider');
@@ -48,6 +49,16 @@ const fulfillPaymentIntent = ({ intent, provider }) => {
     provider,
     entitlementsChanged,
   });
+
+  const purchasedItems = cartRepo.getCartForUser(userId);
+  purchasedItems
+    .filter((item) => item.item_type === 'product')
+    .forEach((item) => {
+      catalogueRepo.decrementProductStock({
+        id: item.item_id,
+        quantity: item.quantity,
+      });
+    });
 
   // Cart is only cleared after confirmed payment success.
   cartRepo.clearCart(userId);

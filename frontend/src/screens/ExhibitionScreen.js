@@ -1,18 +1,69 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, Image, ScrollView, Dimensions, TouchableOpacity } from 'react-native';
+import React, { useEffect, useMemo, useState } from 'react';
+import {
+  ActivityIndicator,
+  Dimensions,
+  Image,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+import { getExhibitions } from '../services/catalogue';
 
 const { width } = Dimensions.get('window');
 
-// Mock artwork images for Dorothea Lange exhibition (Image 4)
-const IMAGES = [
-  { id: '1', uri: 'https://images.unsplash.com/photo-1555620956-f64f895fbcd0?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80', caption: '"Abandoned Dust Bowl Home"\nGelatin silver print\nabout 1935-1940' },
-  { id: '2', uri: 'https://images.unsplash.com/photo-1544335448-f62d1c68fce1?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80', caption: '"Migrant Mother"\nGelatin silver print\n1936' },
-  { id: '3', uri: 'https://images.unsplash.com/photo-1579783901586-d88db74b4fe4?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80', caption: '"White Angel Breadline"\nGelatin silver print\n1933' },
-];
-
 const ExhibitionScreen = () => {
+  const [search, setSearch] = useState('');
+  const [artist, setArtist] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [exhibitions, setExhibitions] = useState([]);
+  const [selectedExhibition, setSelectedExhibition] = useState(null);
   const [activeIndex, setActiveIndex] = useState(0);
   const [bioExpanded, setBioExpanded] = useState(false);
+
+  const filters = useMemo(() => {
+    const next = {};
+    if (search.trim()) next.search = search.trim();
+    if (artist.trim()) next.artist = artist.trim();
+    return next;
+  }, [search, artist]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadExhibitions = async () => {
+      setLoading(true);
+      setError('');
+      try {
+        const data = await getExhibitions(filters);
+        if (cancelled) return;
+        setExhibitions(data);
+        setSelectedExhibition(data[0] || null);
+        setActiveIndex(0);
+      } catch (e) {
+        if (!cancelled) setError(e.response?.data?.error || 'Could not load exhibitions.');
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+
+    loadExhibitions();
+    return () => {
+      cancelled = true;
+    };
+  }, [filters]);
+
+  const images = useMemo(() => {
+    if (!selectedExhibition?.artworks?.length) return [];
+    return selectedExhibition.artworks.map((art) => ({
+      id: art.id,
+      uri: art.image_url,
+      caption: `"${art.title}"\n${art.medium || 'Artwork'}\n${art.year || ''}`,
+    }));
+  }, [selectedExhibition]);
 
   // Handle pagination dots update
   const onScroll = (event) => {
@@ -26,62 +77,115 @@ const ExhibitionScreen = () => {
 
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-      <View style={styles.headerInfo}>
-        <Text style={styles.categoryText}>RETROSPECTIVE</Text>
-        <Text style={styles.artistName}>DOROTHEA{'\n'}LANGE</Text>
-        <Text style={styles.dateText}>OCTOBER 15 - MARCH 18</Text>
-        <Text style={styles.floorText}>FLOOR 3</Text>
+      <View style={styles.searchWrap}>
+        <TextInput
+          style={styles.searchInput}
+          placeholder="Search exhibitions"
+          placeholderTextColor="#9e9e9e"
+          value={search}
+          onChangeText={setSearch}
+        />
+        <TextInput
+          style={styles.searchInput}
+          placeholder="Filter by artist"
+          placeholderTextColor="#9e9e9e"
+          value={artist}
+          onChangeText={setArtist}
+        />
       </View>
 
-      {/* Image Carousel */}
-      <View style={styles.carouselContainer}>
-        <ScrollView
-          horizontal
-          pagingEnabled
-          showsHorizontalScrollIndicator={false}
-          onScroll={onScroll}
-          scrollEventThrottle={16} // smooth out the scroll event updates
-        >
-          {IMAGES.map((img) => (
-            <View key={img.id} style={styles.slide}>
-              <Image source={{ uri: img.uri }} style={styles.carouselImage} />
-            </View>
-          ))}
-        </ScrollView>
-        
-        {/* Pagination Dots */}
-        <View style={styles.paginationContainer}>
-          {IMAGES.map((_, i) => (
-            <View 
-              key={i} 
-              style={[
-                styles.dot, 
-                i === activeIndex ? styles.activeDot : styles.inactiveDot
-              ]} 
-            />
-          ))}
+      {loading ? (
+        <View style={styles.centerState}>
+          <ActivityIndicator color="#ff4c4c" />
         </View>
-        
-        {/* Caption for the active image */}
-        <Text style={styles.captionText}>{IMAGES[activeIndex].caption}</Text>
-      </View>
+      ) : error ? (
+        <View style={styles.centerState}>
+          <Text style={styles.errorText}>{error}</Text>
+        </View>
+      ) : !selectedExhibition ? (
+        <View style={styles.centerState}>
+          <Text style={styles.emptyText}>No exhibitions found for this search.</Text>
+        </View>
+      ) : (
+        <>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.tabsRow}>
+            {exhibitions.map((exh) => {
+              const active = exh.id === selectedExhibition.id;
+              return (
+                <TouchableOpacity
+                  key={exh.id}
+                  style={[styles.tabButton, active && styles.tabButtonActive]}
+                  onPress={() => {
+                    setSelectedExhibition(exh);
+                    setActiveIndex(0);
+                  }}
+                >
+                  <Text style={[styles.tabText, active && styles.tabTextActive]} numberOfLines={1}>
+                    {exh.name}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </ScrollView>
 
-      {/* Expandable Biography Section */}
-      <View style={styles.bioSection}>
-        <TouchableOpacity 
-          style={styles.bioHeaderRow} 
-          onPress={() => setBioExpanded(!bioExpanded)}
-        >
-          <Text style={styles.bioHeaderText}>BIOGRAPHY</Text>
-          <Text style={styles.chevronIcon}>{bioExpanded ? '∧' : '∨'}</Text>
-        </TouchableOpacity>
+          <View style={styles.headerInfo}>
+            <Text style={styles.categoryText}>EXHIBITION</Text>
+            <Text style={styles.artistName}>{(selectedExhibition.artist || selectedExhibition.name).toUpperCase()}</Text>
+            <Text style={styles.dateText}>{selectedExhibition.name}</Text>
+            <Text style={styles.floorText}>FLOOR {selectedExhibition.location_floor || 'N/A'}</Text>
+          </View>
+
+          <View style={styles.carouselContainer}>
+            <ScrollView
+              horizontal
+              pagingEnabled
+              showsHorizontalScrollIndicator={false}
+              onScroll={onScroll}
+              scrollEventThrottle={16}
+            >
+              {images.map((img) => (
+                <View key={img.id} style={styles.slide}>
+                  <Image source={{ uri: img.uri }} style={styles.carouselImage} />
+                </View>
+              ))}
+            </ScrollView>
         
-        {bioExpanded && (
-          <Text style={styles.bioBodyText}>
-            Dorothea Lange (May 26, 1895 - October 11, 1965) was an influential American documentary photographer and photojournalist, best known for her Depression-era work for the Farm Security Administration (FSA). Lange's photographs humanized the consequences of the Great Depression and influenced the development of documentary photography.
-          </Text>
-        )}
-      </View>
+            <View style={styles.paginationContainer}>
+              {images.map((_, i) => (
+                <View
+                  key={i}
+                  style={[
+                    styles.dot,
+                    i === activeIndex ? styles.activeDot : styles.inactiveDot,
+                  ]}
+                />
+              ))}
+            </View>
+        
+            {images[activeIndex] ? (
+              <Text style={styles.captionText}>{images[activeIndex].caption}</Text>
+            ) : (
+              <Text style={styles.captionText}>No artworks available for this exhibition.</Text>
+            )}
+          </View>
+
+          <View style={styles.bioSection}>
+            <TouchableOpacity
+              style={styles.bioHeaderRow}
+              onPress={() => setBioExpanded(!bioExpanded)}
+            >
+              <Text style={styles.bioHeaderText}>DESCRIPTION</Text>
+              <Text style={styles.chevronIcon}>{bioExpanded ? '^' : 'v'}</Text>
+            </TouchableOpacity>
+        
+            {bioExpanded ? (
+              <Text style={styles.bioBodyText}>
+                {selectedExhibition.description || 'Description coming soon.'}
+              </Text>
+            ) : null}
+          </View>
+        </>
+      )}
     </ScrollView>
   );
 };
@@ -90,6 +194,46 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
+  },
+  searchWrap: {
+    paddingHorizontal: 20,
+    paddingTop: 16,
+    gap: 8,
+  },
+  searchInput: {
+    borderWidth: 1,
+    borderColor: '#e2e2e2',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    fontSize: 14,
+    color: '#222',
+  },
+  tabsRow: {
+    paddingHorizontal: 20,
+    paddingTop: 14,
+    gap: 8,
+  },
+  tabButton: {
+    borderWidth: 1,
+    borderColor: '#ffb3b3',
+    borderRadius: 999,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    marginRight: 8,
+  },
+  tabButtonActive: {
+    borderColor: '#ff4c4c',
+    backgroundColor: '#ff4c4c',
+  },
+  tabText: {
+    color: '#ff4c4c',
+    fontSize: 12,
+    fontWeight: '600',
+    maxWidth: 220,
+  },
+  tabTextActive: {
+    color: '#fff',
   },
   headerInfo: {
     paddingHorizontal: 20,
@@ -103,10 +247,10 @@ const styles = StyleSheet.create({
     marginBottom: 5,
   },
   artistName: {
-    fontSize: 28,
+    fontSize: 24,
     fontWeight: 'bold',
     color: '#000',
-    lineHeight: 32,
+    lineHeight: 30,
     marginBottom: 10,
   },
   dateText: {
@@ -190,7 +334,21 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#bbb',
     lineHeight: 22,
-  }
+  },
+  centerState: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 40,
+  },
+  errorText: {
+    color: '#c13030',
+    textAlign: 'center',
+    paddingHorizontal: 20,
+  },
+  emptyText: {
+    color: '#666',
+  },
 });
 
 export default ExhibitionScreen;

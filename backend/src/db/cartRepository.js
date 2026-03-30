@@ -12,6 +12,13 @@ const getCartForUser = (userId) => {
   return rows.map(parseMetadata);
 };
 
+const getCartItem = (userId, itemType, itemId) => {
+  const row = getDb()
+    .prepare('SELECT * FROM cart_items WHERE user_id = ? AND item_type = ? AND item_id = ?')
+    .get(userId, itemType, itemId);
+  return row ? parseMetadata(row) : undefined;
+};
+
 /**
  * Add or update a cart item.
  * If the (user_id, item_type, item_id) combination already exists the quantity
@@ -60,4 +67,4 @@ const parseMetadata = (row) => ({
   metadata: JSON.parse(row.metadata || '{}'),
 });
 
-module.exports = { getCartForUser, upsertItem, removeItem, clearCart };
+module.exports = { getCartForUser, getCartItem, upsertItem, removeItem, clearCart };

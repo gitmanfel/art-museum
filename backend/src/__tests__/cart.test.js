@@ -122,6 +122,14 @@ describe('Cart Endpoints', () => {
         .expect(400);
     });
 
+    it('rejects quantity that exceeds available stock', async () => {
+      await request(app)
+        .post('/api/cart')
+        .set(authHeader())
+        .send({ itemType: 'product', itemId: 'product-braun-watch', quantity: 30 })
+        .expect(409);
+    });
+
     it('requires itemType and itemId', async () => {
       await request(app)
         .post('/api/cart')

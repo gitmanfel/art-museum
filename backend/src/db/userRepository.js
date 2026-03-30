@@ -50,4 +50,21 @@ const updateRole = (id, role) => {
   return findById(id);
 };
 
-module.exports = { findByEmail, findById, create, updatePassword, updateRole };
+const listUsers = (limit = 50) => {
+  return getDb()
+    .prepare('SELECT id, email, role, created_at FROM users ORDER BY created_at DESC LIMIT ?')
+    .all(limit);
+};
+
+const getUserCounts = () => {
+  const totalUsers = getDb().prepare('SELECT COUNT(*) as count FROM users').get().count;
+  const members = getDb().prepare("SELECT COUNT(*) as count FROM users WHERE role = 'member'").get().count;
+  const admins = getDb().prepare("SELECT COUNT(*) as count FROM users WHERE role = 'admin'").get().count;
+  return {
+    totalUsers,
+    members,
+    admins,
+  };
+};
+
+module.exports = { findByEmail, findById, create, updatePassword, updateRole, listUsers, getUserCounts };

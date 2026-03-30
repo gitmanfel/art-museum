@@ -69,4 +69,80 @@ describe('Catalogue Endpoints', () => {
       await request(app).get('/api/catalogue/products/not-a-real-product').expect(404);
     });
   });
+
+  describe('GET /api/catalogue/collections', () => {
+    it('returns collections list', async () => {
+      const res = await request(app).get('/api/catalogue/collections').expect(200);
+      expect(Array.isArray(res.body.collections)).toBe(true);
+      expect(res.body.collections.length).toBeGreaterThan(0);
+      expect(res.body.collections[0]).toHaveProperty('id');
+      expect(res.body.collections[0]).toHaveProperty('name');
+      expect(res.body.collections[0]).toHaveProperty('category');
+    });
+
+    it('supports collection filtering by category', async () => {
+      const res = await request(app)
+        .get('/api/catalogue/collections?category=photography')
+        .expect(200);
+
+      expect(res.body.collections.length).toBeGreaterThan(0);
+      res.body.collections.forEach((collection) => {
+        expect(collection.category).toBe('photography');
+      });
+    });
+  });
+
+  describe('GET /api/catalogue/collections/:id', () => {
+    it('returns a collection with artworks', async () => {
+      const res = await request(app)
+        .get('/api/catalogue/collections/coll-photography')
+        .expect(200);
+
+      expect(res.body.collection).toHaveProperty('id', 'coll-photography');
+      expect(Array.isArray(res.body.collection.artworks)).toBe(true);
+    });
+
+    it('returns 404 for unknown collection', async () => {
+      await request(app).get('/api/catalogue/collections/not-real').expect(404);
+    });
+  });
+
+  describe('GET /api/catalogue/exhibitions', () => {
+    it('returns exhibitions list with artworks', async () => {
+      const res = await request(app).get('/api/catalogue/exhibitions').expect(200);
+      expect(Array.isArray(res.body.exhibitions)).toBe(true);
+      expect(res.body.exhibitions.length).toBeGreaterThan(0);
+      expect(res.body.exhibitions[0]).toHaveProperty('id');
+      expect(res.body.exhibitions[0]).toHaveProperty('name');
+      expect(Array.isArray(res.body.exhibitions[0].artworks)).toBe(true);
+    });
+
+    it('supports exhibition search filtering', async () => {
+      const res = await request(app)
+        .get('/api/catalogue/exhibitions?search=dorothea')
+        .expect(200);
+
+      expect(res.body.exhibitions.length).toBeGreaterThan(0);
+      expect(
+        res.body.exhibitions.some((exh) =>
+          exh.name.toLowerCase().includes('dorothea') || (exh.artist || '').toLowerCase().includes('dorothea')
+        )
+      ).toBe(true);
+    });
+  });
+
+  describe('GET /api/catalogue/exhibitions/:id', () => {
+    it('returns a single exhibition with artworks', async () => {
+      const res = await request(app)
+        .get('/api/catalogue/exhibitions/exh-dorothea-lange')
+        .expect(200);
+
+      expect(res.body.exhibition).toHaveProperty('id', 'exh-dorothea-lange');
+      expect(Array.isArray(res.body.exhibition.artworks)).toBe(true);
+    });
+
+    it('returns 404 for unknown exhibition', async () => {
+      await request(app).get('/api/catalogue/exhibitions/not-real').expect(404);
+    });
+  });
 });

@@ -38,6 +38,17 @@ exports.addItem = (req, res) => {
   if (itemType === 'product') {
     const product = catalogueRepo.getProductById(itemId);
     if (!product) return res.status(404).json({ error: 'Product not found' });
+
+    const existingItem = cartRepo.getCartItem(req.user.userId, 'product', itemId);
+    const existingQty = existingItem ? existingItem.quantity : 0;
+    const requestedQty = existingQty + qty;
+    if (requestedQty > Number(product.stock_quantity || 0)) {
+      return res.status(409).json({
+        error: 'Requested quantity exceeds available stock',
+        availableStock: Number(product.stock_quantity || 0),
+      });
+    }
+
     // Apply member price if user has admin or member role; extend when
     // dedicated membership RBAC is implemented.
     const isMember = req.user.role === 'admin' || req.user.role === 'member';

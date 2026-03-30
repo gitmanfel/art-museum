@@ -5,6 +5,7 @@ const authRoutes      = require('./routes/auth');
 const catalogueRoutes = require('./routes/catalogue');
 const cartRoutes      = require('./routes/cart');
 const checkoutRoutes  = require('./routes/checkout');
+const adminRoutes     = require('./routes/admin');
 
 const app = express();
 
@@ -19,6 +20,7 @@ app.use('/api/auth',      authRoutes);
 app.use('/api/catalogue', catalogueRoutes);
 app.use('/api/cart',      cartRoutes);
 app.use('/api/checkout',  checkoutRoutes);
+app.use('/api/admin',     adminRoutes);
 
 app.get('/api/health', (req, res) => {
     res.status(200).json({ status: 'ok', message: 'Backend is running securely.' });

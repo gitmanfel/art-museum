@@ -23,8 +23,33 @@ const createFulfilledOrder = ({ userId, paymentIntentId, amountCents, currency, 
   return findByPaymentIntentId(paymentIntentId);
 };
 
+const listOrders = (limit = 50) =>
+  getDb()
+    .prepare('SELECT * FROM orders ORDER BY created_at DESC LIMIT ?')
+    .all(limit);
+
+const getOrderMetrics = () => {
+  const row = getDb()
+    .prepare(
+      `SELECT
+         COUNT(*) as totalOrders,
+         COALESCE(SUM(amount_cents), 0) as grossRevenueCents,
+         COALESCE(SUM(CASE WHEN entitlements_changed = 1 THEN 1 ELSE 0 END), 0) as membershipOrders
+       FROM orders`
+    )
+    .get();
+
+  return {
+    totalOrders: row.totalOrders,
+    grossRevenueCents: row.grossRevenueCents,
+    membershipOrders: row.membershipOrders,
+  };
+};
+
 module.exports = {
   findByPaymentIntentId,
   findByPaymentIntentIdForUser,
   createFulfilledOrder,
+  listOrders,
+  getOrderMetrics,
 };

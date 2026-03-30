@@ -8,6 +8,8 @@ import ShopScreen from '../screens/ShopScreen';
 import TicketsScreen from '../screens/TicketsScreen';
 import MembershipScreen from '../screens/MembershipScreen';
 import ArtistsScreen from '../screens/ArtistsScreen';
+import AdminDashboardScreen from '../screens/AdminDashboardScreen';
+import ContentManagementScreen from '../screens/ContentManagementScreen';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 
@@ -132,6 +134,20 @@ const MainNavigator = () => {
         component={ShopScreen} 
         options={{ drawerLabel: 'Shop' }} 
       />
+      {user?.role === 'admin' ? (
+        <>
+          <Drawer.Screen
+            name="Admin Dashboard"
+            component={AdminDashboardScreen}
+            options={{ drawerLabel: 'Admin Dashboard' }}
+          />
+          <Drawer.Screen
+            name="Content Manager"
+            component={ContentManagementScreen}
+            options={{ drawerLabel: 'Content Manager' }}
+          />
+        </>
+      ) : null}
     </Drawer.Navigator>
   );
 };

@@ -22,3 +22,50 @@ exports.getProduct = (req, res) => {
   if (!product) return res.status(404).json({ error: 'Product not found' });
   return res.status(200).json({ product });
 };
+
+exports.getExhibitions = (req, res) => {
+  const filters = {
+    search: req.query.search,
+    artist: req.query.artist,
+    start_date: req.query.start_date ? parseInt(req.query.start_date) : undefined,
+    end_date: req.query.end_date ? parseInt(req.query.end_date) : undefined,
+  };
+  const exhibitions = catalogueRepo.getExhibitions(filters);
+  return res.status(200).json({ exhibitions });
+};
+
+exports.getExhibition = (req, res) => {
+  const exhibition = catalogueRepo.getExhibitionById(req.params.id);
+  if (!exhibition) return res.status(404).json({ error: 'Exhibition not found' });
+  return res.status(200).json({ exhibition });
+};
+
+exports.getCollections = (req, res) => {
+  const filters = {
+    search: req.query.search,
+    category: req.query.category,
+    era_start: req.query.era_start ? parseInt(req.query.era_start) : undefined,
+    era_end: req.query.era_end ? parseInt(req.query.era_end) : undefined,
+  };
+  const collections = catalogueRepo.getCollections(filters);
+  return res.status(200).json({ collections });
+};
+
+exports.getCollection = (req, res) => {
+  const collection = catalogueRepo.getCollectionById(req.params.id);
+  if (!collection) return res.status(404).json({ error: 'Collection not found' });
+  return res.status(200).json({ collection });
+};
+
+exports.updateProductInventory = (req, res) => {
+  const stockQuantity = Number(req.body.stockQuantity);
+  if (!Number.isInteger(stockQuantity) || stockQuantity < 0) {
+    return res.status(400).json({ error: 'stockQuantity must be a non-negative integer' });
+  }
+
+  const existing = catalogueRepo.getProductById(req.params.id);
+  if (!existing) return res.status(404).json({ error: 'Product not found' });
+
+  const product = catalogueRepo.updateProductStock(req.params.id, stockQuantity);
+  return res.status(200).json({ product });
+};

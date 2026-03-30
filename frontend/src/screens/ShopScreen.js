@@ -48,7 +48,11 @@ const ShopScreen = ({ navigation }) => {
     }
   };
 
-  const incrementQuantity = () => setQuantity(prev => prev + 1);
+  const stockQuantity = Number(product?.stock_quantity || 0);
+
+  const incrementQuantity = () => {
+    setQuantity((prev) => (prev < stockQuantity ? prev + 1 : prev));
+  };
   const decrementQuantity = () => setQuantity(prev => (prev > 0 ? prev - 1 : 0));
 
   const handleAddToCart = async () => {
@@ -64,6 +68,8 @@ const ShopScreen = ({ navigation }) => {
         { text: 'View Cart', onPress: () => navigation.getParent().navigate('Cart') },
       ]);
       setQuantity(0);
+    } else if (result.error) {
+      Alert.alert('Could not add item', result.error);
     }
   };
 
@@ -132,6 +138,9 @@ const ShopScreen = ({ navigation }) => {
             <Text style={styles.memberPrice}>
               ${Number(product.member_price || product.price).toFixed(2)} Member Price
             </Text>
+            <Text style={styles.stockText}>
+              {stockQuantity > 0 ? `${stockQuantity} in stock` : 'Out of stock'}
+            </Text>
           </View>
           
           {/* Quantity Selector */}
@@ -140,7 +149,7 @@ const ShopScreen = ({ navigation }) => {
               <Text style={styles.qtyBtnText}>-</Text>
             </TouchableOpacity>
             <Text style={styles.qtyText}>{quantity}</Text>
-            <TouchableOpacity onPress={incrementQuantity} style={styles.qtyBtn}>
+            <TouchableOpacity onPress={incrementQuantity} style={styles.qtyBtn} disabled={quantity >= stockQuantity}>
               <Text style={styles.qtyBtnText}>+</Text>
             </TouchableOpacity>
           </View>
@@ -149,8 +158,8 @@ const ShopScreen = ({ navigation }) => {
         <TouchableOpacity 
           style={styles.addToCartButton}
           onPress={handleAddToCart}
-          disabled={quantity === 0 || loading}
-          style={[styles.addToCartButton, (quantity === 0 || loading) && styles.addToCartButtonDisabled]}
+          disabled={quantity === 0 || loading || stockQuantity === 0}
+          style={[styles.addToCartButton, (quantity === 0 || loading || stockQuantity === 0) && styles.addToCartButtonDisabled]}
         >
           {loading
             ? <ActivityIndicator color="#fff" />
@@ -245,6 +254,11 @@ const styles = StyleSheet.create({
   memberPrice: {
     fontSize: 12,
     color: '#aaa',
+  },
+  stockText: {
+    fontSize: 12,
+    color: '#666',
+    marginTop: 8,
   },
   quantitySelector: {
     flexDirection: 'row',
