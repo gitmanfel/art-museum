@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { saveToken, deleteToken } from '../utils/secureStorage';
+import { saveToken, deleteToken, getToken } from '../utils/secureStorage';
 
 // MUST USE HTTPS in production to prevent MitM
 // In development, map to your local dev IP
@@ -99,4 +99,27 @@ export const resetPassword = async (token, newPassword) => {
 export const logout = async () => {
     await deleteToken();
     // Logic to clear user state from Context/Redux goes here
+};
+
+/**
+ * Fetch current authenticated user profile.
+ */
+export const getMe = async () => {
+  try {
+    const token = await getToken();
+    if (!token) {
+      return { success: false, error: 'No token' };
+    }
+
+    const response = await authApi.get('/me', {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    return { success: true, user: response.data.user };
+  } catch (error) {
+    return {
+      success: false,
+      error: error.response?.data?.error || 'Unable to fetch profile.',
+    };
+  }
 };

@@ -120,6 +120,7 @@ const applySchema = (db) => {
       currency           TEXT NOT NULL,
       provider           TEXT NOT NULL,
       status             TEXT NOT NULL DEFAULT 'paid',
+      entitlements_changed INTEGER NOT NULL DEFAULT 0,
       fulfilled_at       INTEGER NOT NULL,
       created_at         INTEGER NOT NULL DEFAULT (unixepoch())
     );

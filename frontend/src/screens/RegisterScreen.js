@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
 import { register } from '../services/auth';
+import { useAuth } from '../context/AuthContext';
 
 const isStrongPassword = (value) => {
   return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{10,}$/.test(value);
 };
 
 const RegisterScreen = ({ navigation }) => {
+  const { refreshProfile } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -38,6 +40,7 @@ const RegisterScreen = ({ navigation }) => {
     const result = await register(email, password);
 
     if (result.success) {
+      await refreshProfile();
       navigation.replace('Main');
     } else {
       setError(result.error);

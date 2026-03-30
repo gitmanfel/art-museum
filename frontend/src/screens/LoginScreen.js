@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
 import { login, forgotPassword } from '../services/auth';
+import { useAuth } from '../context/AuthContext';
 
 const LoginScreen = ({ navigation }) => {
+  const { refreshProfile } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -43,6 +45,7 @@ const LoginScreen = ({ navigation }) => {
     const result = await login(email, password);
 
     if (result.success) {
+      await refreshProfile();
         // Successful login, navigate to the Main app flow (Drawer)
         navigation.replace('Main');
     } else {

@@ -8,5 +8,6 @@ const router = Router();
 
 router.post('/webhook', checkoutCtrl.handleWebhook);
 router.post('/intent', requireAuth, checkoutCtrl.createCheckoutIntent);
+router.get('/status/:paymentIntentId', requireAuth, checkoutCtrl.getCheckoutStatus);
 
 module.exports = router;

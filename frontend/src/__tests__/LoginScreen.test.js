@@ -4,6 +4,10 @@ import LoginScreen from '../screens/LoginScreen';
 import * as authService from '../services/auth';
 
 jest.mock('../services/auth');
+const mockRefreshProfile = jest.fn();
+jest.mock('../context/AuthContext', () => ({
+  useAuth: () => ({ refreshProfile: mockRefreshProfile }),
+}));
 
 // Mock TouchableOpacity to bypass deep Animated internals causing React test renderer mismatch
 jest.mock('react-native', () => {
@@ -21,6 +25,7 @@ describe('LoginScreen UI & Logic', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockRefreshProfile.mockResolvedValue({ success: true });
   });
 
   it('renders title, inputs, and login button correctly', () => {
@@ -60,6 +65,7 @@ describe('LoginScreen UI & Logic', () => {
     
     await waitFor(() => {
       expect(authService.login).toHaveBeenCalledWith('test@example.com', 'password123');
+      expect(mockRefreshProfile).toHaveBeenCalled();
       expect(mockNavigation.replace).toHaveBeenCalledWith('Main');
     });
   });

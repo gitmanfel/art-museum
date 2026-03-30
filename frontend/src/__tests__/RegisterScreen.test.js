@@ -4,6 +4,10 @@ import RegisterScreen from '../screens/RegisterScreen';
 import * as authService from '../services/auth';
 
 jest.mock('../services/auth');
+const mockRefreshProfile = jest.fn();
+jest.mock('../context/AuthContext', () => ({
+  useAuth: () => ({ refreshProfile: mockRefreshProfile }),
+}));
 
 jest.mock('react-native', () => {
   const RN = jest.requireActual('react-native');
@@ -20,6 +24,7 @@ describe('RegisterScreen UI & Logic', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockRefreshProfile.mockResolvedValue({ success: true });
   });
 
   it('renders title, inputs, and create account button', () => {
@@ -75,6 +80,7 @@ describe('RegisterScreen UI & Logic', () => {
 
     await waitFor(() => {
       expect(authService.register).toHaveBeenCalledWith('user@example.com', 'StrongPass1!');
+      expect(mockRefreshProfile).toHaveBeenCalled();
       expect(mockNavigation.replace).toHaveBeenCalledWith('Main');
     });
   });

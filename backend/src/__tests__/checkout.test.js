@@ -70,6 +70,25 @@ describe('Checkout Endpoints', () => {
     expect(res.body).toHaveProperty('amountCents', 16000);
     expect(res.body).toHaveProperty('currency', 'usd');
     expect(res.body).toHaveProperty('cartTotal', 160);
+    expect(res.body).toHaveProperty('fulfilled', true);
+    expect(res.body).toHaveProperty('entitlementsChanged', false);
+
+    const user = getDb().prepare('SELECT id FROM users WHERE email = ?').get('checkout@example.com');
+    const cartRows = getDb().prepare('SELECT * FROM cart_items WHERE user_id = ?').all(user.id);
+    expect(cartRows).toHaveLength(0);
+  });
+
+  it('returns checkout status for authenticated user', async () => {
+    const res = await request(app)
+      .get('/api/checkout/status/pi_mock_ignored_missing')
+      .set(auth())
+      .expect(200);
+
+    expect(res.body).toEqual({
+      fulfilled: false,
+      entitlementsChanged: false,
+      userRole: 'user',
+    });
   });
 
   it('fulfills successful payment webhook and clears cart', async () => {
@@ -187,6 +206,17 @@ describe('Checkout Endpoints', () => {
 
     const upgraded = getDb().prepare('SELECT role FROM users WHERE id = ?').get(user.id);
     expect(upgraded.role).toBe('member');
+
+    const status = await request(app)
+      .get('/api/checkout/status/pi_mock_member_1')
+      .set(auth())
+      .expect(200);
+
+    expect(status.body).toEqual({
+      fulfilled: true,
+      entitlementsChanged: true,
+      userRole: 'member',
+    });
 
     // Reuse existing token; middleware should read DB role and apply member price.
     const addRes = await request(app)

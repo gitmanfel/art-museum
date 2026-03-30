@@ -26,3 +26,9 @@ export const createCheckoutIntent = async () => {
   );
   return data;
 };
+
+export const getCheckoutStatus = async (paymentIntentId) => {
+  const api = await checkoutApi();
+  const { data } = await api.get(`/status/${paymentIntentId}`);
+  return data;
+};

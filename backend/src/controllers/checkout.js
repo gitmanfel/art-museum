@@ -8,6 +8,58 @@ const { createPaymentIntent, constructWebhookEvent, PROVIDER_STRIPE, PROVIDER_MO
 const calcCartTotal = (items) =>
   items.reduce((sum, i) => sum + i.unit_price * i.quantity, 0);
 
+const fulfillPaymentIntent = ({ intent, provider }) => {
+  const userId = intent?.metadata?.userId;
+  const paymentIntentId = intent?.id;
+
+  if (!userId || !paymentIntentId) {
+    const error = new Error('Missing required payment metadata');
+    error.code = 'missing_payment_metadata';
+    throw error;
+  }
+
+  const existing = orderRepo.findByPaymentIntentId(paymentIntentId);
+  if (existing) {
+    const user = userRepo.findById(userId);
+    return {
+      fulfilled: true,
+      duplicate: true,
+      entitlementsChanged: Boolean(existing.entitlements_changed),
+      userRole: user?.role || 'user',
+    };
+  }
+
+  let entitlementsChanged = false;
+  if (intent?.metadata?.hasMembership === '1') {
+    const user = userRepo.findById(userId);
+    if (user && user.role === 'user') {
+      userRepo.updateRole(userId, 'member');
+      entitlementsChanged = true;
+    }
+  }
+
+  const updatedUser = userRepo.findById(userId);
+
+  orderRepo.createFulfilledOrder({
+    userId,
+    paymentIntentId,
+    amountCents: intent.amount_received || intent.amount || 0,
+    currency: intent.currency || 'usd',
+    provider,
+    entitlementsChanged,
+  });
+
+  // Cart is only cleared after confirmed payment success.
+  cartRepo.clearCart(userId);
+
+  return {
+    fulfilled: true,
+    duplicate: false,
+    entitlementsChanged,
+    userRole: updatedUser?.role || 'user',
+  };
+};
+
 exports.createCheckoutIntent = async (req, res) => {
   const idempotencyKey = req.headers['idempotency-key'];
   if (!idempotencyKey) {
@@ -37,6 +89,31 @@ exports.createCheckoutIntent = async (req, res) => {
       },
     });
 
+    let fulfillment = {
+      fulfilled: false,
+      duplicate: false,
+      entitlementsChanged: false,
+      userRole: req.user.role,
+    };
+
+    if (intent.provider === PROVIDER_MOCK) {
+      fulfillment = fulfillPaymentIntent({
+        provider: PROVIDER_MOCK,
+        intent: {
+          id: intent.id,
+          amount: intent.amount,
+          amount_received: intent.amount,
+          currency: intent.currency,
+          metadata: {
+            userId: req.user.userId,
+            email: req.user.email,
+            itemCount: String(items.length),
+            hasMembership: hasMembership ? '1' : '0',
+          },
+        },
+      });
+    }
+
     return res.status(200).json({
       provider: intent.provider,
       paymentIntentId: intent.id,
@@ -45,6 +122,9 @@ exports.createCheckoutIntent = async (req, res) => {
       currency: intent.currency,
       status: intent.status,
       cartTotal: total,
+      fulfilled: fulfillment.fulfilled,
+      entitlementsChanged: fulfillment.entitlementsChanged,
+      userRole: fulfillment.userRole,
     });
   } catch (error) {
     if (error.code === 'stripe_not_configured') {
@@ -52,6 +132,23 @@ exports.createCheckoutIntent = async (req, res) => {
     }
     return res.status(502).json({ error: 'Could not create payment intent' });
   }
+};
+
+exports.getCheckoutStatus = (req, res) => {
+  const order = orderRepo.findByPaymentIntentIdForUser(req.params.paymentIntentId, req.user.userId);
+  if (!order) {
+    return res.status(200).json({
+      fulfilled: false,
+      entitlementsChanged: false,
+      userRole: req.user.role,
+    });
+  }
+
+  return res.status(200).json({
+    fulfilled: order.status === 'paid',
+    entitlementsChanged: Boolean(order.entitlements_changed),
+    userRole: req.user.role,
+  });
 };
 
 exports.handleWebhook = (req, res) => {
@@ -74,36 +171,16 @@ exports.handleWebhook = (req, res) => {
     return res.status(200).json({ received: true, ignored: true });
   }
 
-  const intent = event.data?.object;
-  const userId = intent?.metadata?.userId;
-  const paymentIntentId = intent?.id;
-
-  if (!userId || !paymentIntentId) {
-    return res.status(400).json({ error: 'Missing required payment metadata' });
-  }
-
-  const existing = orderRepo.findByPaymentIntentId(paymentIntentId);
-  if (existing) {
-    return res.status(200).json({ received: true, duplicate: true });
-  }
-
-  orderRepo.createFulfilledOrder({
-    userId,
-    paymentIntentId,
-    amountCents: intent.amount_received || intent.amount || 0,
-    currency: intent.currency || 'usd',
-    provider: signature ? PROVIDER_STRIPE : PROVIDER_MOCK,
-  });
-
-  if (intent?.metadata?.hasMembership === '1') {
-    const user = userRepo.findById(userId);
-    if (user && user.role === 'user') {
-      userRepo.updateRole(userId, 'member');
+  try {
+    const fulfillment = fulfillPaymentIntent({
+      intent: event.data?.object,
+      provider: signature ? PROVIDER_STRIPE : PROVIDER_MOCK,
+    });
+    return res.status(200).json({ received: true, ...fulfillment });
+  } catch (error) {
+    if (error.code === 'missing_payment_metadata') {
+      return res.status(400).json({ error: 'Missing required payment metadata' });
     }
+    return res.status(400).json({ error: 'Could not fulfill payment' });
   }
-
-  // Cart is only cleared after confirmed payment success.
-  cartRepo.clearCart(userId);
-
-  return res.status(200).json({ received: true, fulfilled: true });
 };

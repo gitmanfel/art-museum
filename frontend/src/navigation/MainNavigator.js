@@ -9,25 +9,41 @@ import TicketsScreen from '../screens/TicketsScreen';
 import MembershipScreen from '../screens/MembershipScreen';
 import ArtistsScreen from '../screens/ArtistsScreen';
 import { useCart } from '../context/CartContext';
+import { useAuth } from '../context/AuthContext';
 
 const Drawer = createDrawerNavigator();
 
 // Cart icon shown in every drawer screen's header
 const CartHeaderButton = ({ navigation }) => {
   const { itemCount } = useCart();
+  const { user } = useAuth();
+
+  const roleLabel = user?.role === 'member'
+    ? 'MEMBER'
+    : user?.role === 'admin'
+      ? 'ADMIN'
+      : null;
+
   return (
-    <TouchableOpacity
-      onPress={() => navigation.getParent().navigate('Cart')}
-      style={styles.cartBtn}
-      accessibilityLabel="Open cart"
-    >
-      <Text style={styles.cartIcon}>🛒</Text>
-      {itemCount > 0 && (
-        <View style={styles.badge}>
-          <Text style={styles.badgeText}>{itemCount > 99 ? '99+' : itemCount}</Text>
+    <View style={styles.headerActions}>
+      {roleLabel ? (
+        <View style={styles.rolePill}>
+          <Text style={styles.rolePillText}>{roleLabel}</Text>
         </View>
-      )}
-    </TouchableOpacity>
+      ) : null}
+      <TouchableOpacity
+        onPress={() => navigation.getParent().navigate('Cart')}
+        style={styles.cartBtn}
+        accessibilityLabel="Open cart"
+      >
+        <Text style={styles.cartIcon}>🛒</Text>
+        {itemCount > 0 && (
+          <View style={styles.badge}>
+            <Text style={styles.badgeText}>{itemCount > 99 ? '99+' : itemCount}</Text>
+          </View>
+        )}
+      </TouchableOpacity>
+    </View>
   );
 };
 
@@ -145,6 +161,23 @@ const styles = StyleSheet.create({
     fontSize: 16,
   }
   ,
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  rolePill: {
+    backgroundColor: '#111',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 999,
+    marginRight: 8,
+  },
+  rolePillText: {
+    color: '#fff',
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 0.8,
+  },
   cartBtn: {
     marginRight: 16,
     padding: 4,
