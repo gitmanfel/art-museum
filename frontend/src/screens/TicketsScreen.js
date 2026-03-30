@@ -57,7 +57,7 @@ const TicketsScreen = ({ navigation }) => {
   };
 
   const renderCounterRow = (ticket) => (
-    <View style={styles.counterRow}>
+    <View key={ticket.id} style={styles.counterRow}>
       <View>
         <Text style={styles.counterTitle}>{ticket.name}</Text>
         {ticket.description ? <Text style={styles.counterSubtitle}>{ticket.description}</Text> : null}
