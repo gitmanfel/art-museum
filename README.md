@@ -7,6 +7,8 @@
 
 > **🌐 GitHub Page:** https://gitmanfel.github.io/art-museum/
 
+> **🧭 Full Architecture Map:** [ARCHITECTURE.md](ARCHITECTURE.md)
+
 ## Demo day quick commands
 
 - From repo root, run seeded-data validation:
@@ -27,6 +29,16 @@
 	- Uses fixed port `8096` for stable demo startup.
 - GitHub Page publication:
 	- Pushed updates to `docs/` auto-deploy via `.github/workflows/pages.yml`.
+
+## Repository privacy switch (manual)
+
+I cannot change repository visibility from this workspace, but these are the exact steps:
+
+1. GitHub repository -> Settings -> General.
+2. Scroll to Danger Zone -> Change repository visibility.
+3. Select Make private and confirm repository name.
+4. Verify workflows still run in Actions tab.
+5. Verify Pages in Settings -> Pages (Source: GitHub Actions).
 
 ## Environment variables
 

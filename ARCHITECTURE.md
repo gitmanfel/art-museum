@@ -1,112 +1,186 @@
-# Architecture & Project Plan: The Art Museum App
+# Architecture: The Art Museum App (As Built)
 
-This document outlines the product backlog, architecture, and "Secured by Design" principles for building "The Art Museum" mobile application, based on the provided prototype images.
+This document maps the current implementation, deployment model, and all major features in the repository.
 
-## 1. Core Principles: Secured by Design
+## 1. System Overview
 
-Before writing any code, the architecture must integrate security at every layer. This app handles sensitive user data (passwords, PII) and financial transactions (shop, tickets, memberships), requiring strict adherence to security best practices (e.g., OWASP Mobile Top 10, PCI-DSS).
+- Frontend: React Native + Expo (web enabled)
+- Backend: Node.js + Express
+- Database: SQLite (better-sqlite3) with WAL mode
+- Auth: JWT + bcrypt password hashing
+- Payments: Stripe integration path (frontend + backend checkout flow)
+- CI/CD: GitHub Actions for CI, security audits, and Pages deployment
 
-*   **Never Trust the Client:** All business logic, price calculations, and authorization checks must occur on the backend.
-*   **Defense in Depth:** Multiple layers of security controls (WAF, API Gateway, Application Logic, Database Encryption).
-*   **Least Privilege:** Services, databases, and users should only have the minimum permissions necessary.
-*   **Secure Defaults:** Features should be secure out-of-the-box (e.g., strong password requirements, secure headers, encrypted storage).
-*   **Zero Trust Architecture:** Strict identity verification for every person and device trying to access resources.
+## 2. Runtime Architecture
 
----
+```mermaid
+flowchart LR
+    U[User Browser / Mobile Client]
+    F[Frontend App\nReact Native + Expo]
+    B[Backend API\nExpress Controllers + Middleware]
+    DB[(SQLite DB\nWAL + normalized tables)]
+    M[Mailing Service\nSMTP or Dev Mode]
+    P[Payment Provider\nStripe flow]
 
-## 2. System Architecture
+    U --> F
+    F -->|HTTP /api/*| B
+    B --> DB
+    B --> M
+    B --> P
+```
 
-*   **Mobile Frontend:** React Native (Expo) - Cross-platform (iOS/Android).
-*   **Backend API:** Node.js with Express or NestJS (REST or GraphQL) hosted on a secure cloud provider (AWS/GCP).
-*   **Database:** PostgreSQL (Relational data: Users, Orders, Tickets) + Redis (Session management, caching).
-*   **Authentication Identity Provider (IdP):** Auth0 or AWS Cognito (Offloading complex auth logic to hardened third-party services).
-*   **Payment Gateway:** Stripe (Handles PCI compliance via tokenization).
-*   **Media Storage:** AWS S3 with CloudFront CDN (for artwork and exhibition images).
+## 3. Backend Layer Map
 
----
+```mermaid
+flowchart TB
+    R[Routes]
+    C[Controllers]
+    S[Services]
+    D[Repositories / DB Access]
+    X[(SQLite)]
+    MW[Middleware\nauth + rate limiting]
 
-## 3. Product Backlog & Work Mapping
+    R --> MW
+    R --> C
+    C --> S
+    C --> D
+    S --> D
+    D --> X
+```
 
-### Epic 1: Identity & Access Management (Image 1)
-*   **User Story:** As a user, I want to securely create an account and log in so I can manage my memberships, tickets, and shop orders.
-*   **Tasks:**
-    *   Setup Auth0/Cognito tenant.
-    *   Build Login/Registration UI.
-    *   Implement "Forgot Password" flow with secure email links.
-    *   **Security Tasks:**
-        *   Implement biometric authentication (FaceID/TouchID) for app unlock.
-        *   Ensure JWTs have short expirations and implement secure refresh token rotation.
-        *   Store access/refresh tokens in secure enclaves (iOS Keychain / Android Keystore) - DO NOT use plain `AsyncStorage`.
-        *   Implement strict rate-limiting on login/registration API endpoints to prevent brute-force attacks.
-        *   Enforce strong password policies (length, complexity, dictionary checks).
+### Route Domains
 
-### Epic 2: Main Navigation & Discovery (Images 2, 3)
-*   **User Story:** As a user, I want to navigate the app and view featured exhibitions and museum hours on the home screen.
-*   **Tasks:**
-    *   Implement Side Drawer Navigation Menu.
-    *   Build Home Screen UI (Featured banner, quick links, location/hours).
-    *   Implement Global Search functionality.
-    *   **Security Tasks:**
-        *   Implement input sanitization and parameterized queries for the Search API to prevent SQL Injection and XSS.
-        *   Enforce TLS 1.2+ (preferably TLS 1.3) with certificate pinning for all mobile-to-API communication to prevent Man-in-the-Middle (MitM) attacks.
+- Auth: login, register, me, forgot/reset password, diagnostics
+- Catalogue: tickets, memberships, products, collections, exhibitions
+- Cart: add/update/remove and fetch cart items
+- Checkout: intents, payment/status flow
+- Contact: message submission + newsletter subscription
+- Admin: content and operational management endpoints
 
-### Epic 3: Exhibitions, Artists & Collections (Images 4, 6)
-*   **User Story:** As a user, I want to browse collections, view exhibition details, and read artist biographies.
-*   **Tasks:**
-    *   Build Exhibition details page (image carousel, dates, description).
-    *   Build Collections grid view with category filtering.
-    *   Setup CDN for optimized image delivery.
-    *   **Security Tasks:**
-        *   Ensure APIs serving public catalog data implement rate limiting to prevent scraping/DDoS.
-        *   Validate all image URLs to prevent Server-Side Request Forgery (SSRF) if the app ever fetches external images.
+## 4. Frontend Navigation Map
 
-### Epic 4: E-Commerce / Shop (Image 5)
-*   **User Story:** As a user, I want to view merchandise and add items to my cart.
-*   **Tasks:**
-    *   Build Product Details page (price, variations, "Add to Cart").
-    *   Implement persistent Cart state.
-    *   Implement "Member Price" calculation logic.
-    *   **Security Tasks:**
-        *   **CRITICAL:** All price calculations and discount logic MUST happen on the backend. The client only sends the Product ID; the server determines the price.
-        *   Validate inventory levels atomically on the backend during the "Add to Cart" and "Checkout" phases to prevent race conditions.
+```mermaid
+flowchart TB
+    L[Login]
+    R[Register]
+    RP[Reset Password]
+    MN[Main Drawer]
 
-### Epic 5: Ticketing & Booking (Image 7)
-*   **User Story:** As a user, I want to select a date and purchase admission tickets for various age groups.
-*   **Tasks:**
-    *   Build Ticket selection UI (Date picker, counter for Adults/Seniors/Students).
-    *   Calculate running total dynamically.
-    *   **Security Tasks:**
-        *   Similar to the shop, validate ticket prices and availability server-side.
-        *   Implement secure booking locks (e.g., reserve tickets for 10 minutes during checkout) using Redis.
+    MN --> H[Home]
+    MN --> EX[Exhibitions & Events]
+    MN --> AA[Artists & Artworks]
+    MN --> CO[Collections]
+    MN --> PV[Plan Your Visit]
+    MN --> BM[Become a Member]
+    MN --> SH[Shop]
+    MN --> MO[My Orders]
+    MN --> CT[Contact]
+    MN --> AD[Admin Dashboard]
+    MN --> CM[Content Manager]
 
-### Epic 6: Memberships (Image 8)
-*   **User Story:** As a user, I want to view membership tiers and purchase a membership to get benefits like free entry and shop discounts.
-*   **Tasks:**
-    *   Build Membership selection UI (Individual, Dual, Supporter).
-    *   Implement logic to apply membership status to user accounts post-purchase.
-    *   **Security Tasks:**
-        *   Implement robust Role-Based Access Control (RBAC). When a membership is purchased, the backend must securely upgrade the user's role and issue a new JWT reflecting those permissions.
+    L --> MN
+    L --> R
+    L --> RP
+    MN --> CART[Cart]
+    CART --> PAY[Payment]
+    PAY --> CS[Checkout Status]
+```
 
-### Epic 7: Payment Processing & Checkout (Images 5, 7, 8)
-*   **User Story:** As a user, I want to securely pay for my tickets, shop items, or membership using my credit card or Apple/Google Pay.
-*   **Tasks:**
-    *   Integrate Stripe React Native SDK.
-    *   Build generic checkout flow.
-    *   Implement Stripe Webhooks on the backend to fulfill orders upon successful payment.
-    *   **Security Tasks:**
-        *   **PCI-DSS Compliance:** The app MUST NOT handle raw credit card numbers. Use Stripe Elements/SDK to tokenize card data directly to Stripe.
-        *   Backend must verify Stripe Webhook signatures to prevent spoofed payment confirmations.
-        *   Use Idempotency Keys for all payment creation requests to prevent duplicate charges on network retries.
+## 5. Data Model Map
 
-### Epic 8: Infrastructure & DevSecOps
-*   **Tasks:**
-    *   Setup CI/CD pipelines (GitHub Actions).
-    *   Provision cloud infrastructure using Infrastructure as Code (Terraform).
-    *   **Security Tasks:**
-        *   Integrate SAST (Static Application Security Testing) and SCA (Software Composition Analysis) tools into the CI/CD pipeline to catch vulnerabilities in code and dependencies before merging.
-        *   Use Secrets Management (e.g., AWS Secrets Manager, .env files NEVER committed to source control) for API keys and database credentials.
-        *   Encrypt databases at rest (AES-256) and enforce encrypted connections (SSL/TLS) between backend services and the database.
-        *   Implement a Web Application Firewall (WAF) in front of the backend API.
-        *   Configure structured logging and monitoring (e.g., Datadog, ELK stack) with alerting for suspicious activity (e.g., multiple failed logins, payment failures), ensuring PII/passwords are stripped from logs.
+```mermaid
+erDiagram
+    USERS ||--o{ CART_ITEMS : owns
+    USERS ||--o{ ORDERS : places
+    USERS ||--o{ ADMIN_AUDIT_LOGS : triggers
+    PRODUCTS ||--o{ CART_ITEMS : includes
+    PRODUCTS ||--o{ ORDER_ITEMS : purchased_as
+    TICKET_TYPES ||--o{ CART_ITEMS : includes
+    MEMBERSHIP_TIERS ||--o{ CART_ITEMS : includes
+    EXHIBITIONS ||--o{ ARTWORKS : contains
+    COLLECTIONS ||--o{ COLLECTION_ARTWORKS : maps
+    ARTWORKS ||--o{ COLLECTION_ARTWORKS : mapped_by
+    USERS ||--o{ PASSWORD_RESET_TOKENS : has
+```
 
----
+## 6. Feature Inventory (Complete)
+
+### Identity and Access
+
+- Email/password registration and login
+- JWT-based session auth
+- Role-aware UI behavior (user/member/admin labels and access)
+- Forgot/reset password flow with token storage
+
+### Catalogue and Discovery
+
+- Tickets, memberships, products, collections, exhibitions APIs
+- Search/filter controls on catalogue surfaces
+- Artists and artworks screen with:
+  - Clickable artist cards
+  - Pagination controls
+  - Clickable artwork detail panel
+
+### Commerce and Checkout
+
+- Shop product detail and image carousel
+- Add-to-cart with stock-aware quantity controls
+- More-in-shop clickable product switching
+- Cart and order pipeline
+- Stripe-oriented checkout status flow
+
+### Contact and Communications
+
+- Contact message submission
+- Newsletter subscription
+- Dev/prod mailing mode handling
+
+### Admin and Operations
+
+- Admin dashboard and content manager screens
+- Backend admin routes and audit trail support
+- Diagnostics/status endpoints for environment readiness
+
+### Reliability and QA
+
+- Backend test suites
+- Frontend screen and interaction tests
+- Demo health checks for seeded data thresholds
+- CI pipeline gates for backend, frontend, config guard, and demo verification
+- Security workflow for dependency review and audit baseline control
+
+### Portfolio and Publication
+
+- Portfolio document for recruiter-facing review
+- GitHub Pages deployment from docs/ via workflow
+
+## 7. Security Controls (Current)
+
+- Password hashing with bcrypt
+- JWT token validation on protected endpoints
+- Role-based checks for admin operations
+- Auth rate limiting and request guards
+- Config checks for production-sensitive settings
+- Security workflow for dependency scanning
+
+## 8. Local Run Model
+
+- Backend: http://localhost:5000
+- Frontend web: http://localhost:8096
+
+Root helper commands:
+
+- npm run start:backend
+- npm run start:frontend:web
+- npm run demo:health
+- npm run verify:demo
+
+## 9. Notes for Private Repository Mode
+
+If this repository is switched to private, CI still runs normally. GitHub Pages publication depends on account/repository plan and Pages permissions.
+
+Recommended checks after privacy switch:
+
+1. Settings -> General -> Change repository visibility -> Private
+2. Settings -> Pages -> Source set to GitHub Actions
+3. Actions tab -> verify successful run of Pages workflow
