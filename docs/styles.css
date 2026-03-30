@@ -389,13 +389,27 @@ h1 {
 }
 
 .system-row {
+  position: relative;
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 14px;
 }
 
+.system-row.connected::before {
+  content: "";
+  position: absolute;
+  left: 24px;
+  right: 24px;
+  top: 50%;
+  height: 2px;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.05), rgba(255, 90, 79, 0.35), rgba(255, 255, 255, 0.05));
+  transform: translateY(-50%);
+  box-shadow: 0 0 18px rgba(255, 90, 79, 0.15);
+}
+
 .system-box {
   position: relative;
+  z-index: 1;
   min-height: 120px;
   padding: 14px;
   border-radius: 14px;
@@ -499,6 +513,35 @@ h1 {
   font-size: 0.9rem;
 }
 
+.system-sidepanel {
+  position: relative;
+  z-index: 1;
+  margin-top: 16px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+}
+
+.system-sidepanel-card {
+  padding: 14px;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02));
+}
+
+.system-sidepanel-card strong {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 0.98rem;
+}
+
+.system-sidepanel-card p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.55;
+  font-size: 0.9rem;
+}
+
 .system-caption {
   position: relative;
   z-index: 1;
@@ -569,6 +612,10 @@ h1 {
 
   .system-tier-head {
     align-items: flex-start;
+  }
+
+  .system-row.connected::before {
+    display: none;
   }
 }
 

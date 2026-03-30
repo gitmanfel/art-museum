@@ -56,8 +56,11 @@
         <h2>Architecture Design</h2>
         <div class="system-diagram compact" aria-label="System architecture diagram">
           <section class="system-tier">
-            <span class="system-tier-label">System View</span>
-            <div class="system-row">
+            <div class="system-tier-head">
+              <span class="system-tier-label">System View</span>
+              <span class="system-boundary">Shared Review Boundary</span>
+            </div>
+            <div class="system-row connected">
               <article class="system-box">
                 <h3>Client Layer</h3>
                 <p>React Native screens, navigation, auth context, and cart context organize the museum experience by domain.</p>

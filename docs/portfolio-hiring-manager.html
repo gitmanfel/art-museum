@@ -42,8 +42,11 @@
       <h2>Architecture Design View</h2>
       <div class="system-diagram compact" aria-label="System architecture diagram">
         <section class="system-tier">
-          <span class="system-tier-label">Management View</span>
-          <div class="system-row">
+            <div class="system-tier-head">
+              <span class="system-tier-label">Management View</span>
+              <span class="system-boundary">Ownership Boundary</span>
+            </div>
+            <div class="system-row connected">
             <article class="system-box">
               <h3>Frontend Domains</h3>
               <p>Screen flows are organized by auth, catalogue, cart, checkout, and admin responsibilities.</p>

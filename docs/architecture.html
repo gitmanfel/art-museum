@@ -52,7 +52,7 @@
             <span class="system-tier-label">Experience Layer</span>
             <span class="system-boundary">Public Client Boundary</span>
           </div>
-          <div class="system-row">
+          <div class="system-row connected">
             <article class="system-box client">
               <h3>Visitor Experience</h3>
               <p>Home, exhibitions, artists, collections, shop, tickets, membership, and contact flows in the React Native client.</p>
@@ -75,7 +75,7 @@
             <span class="system-tier-label">Application Layer</span>
             <span class="system-boundary">Trusted Service Boundary</span>
           </div>
-          <div class="system-row">
+          <div class="system-row connected">
             <article class="system-box application">
               <h3>Route and Controller Layer</h3>
               <p>Express routes and controllers convert HTTP input into bounded feature handlers for auth, catalogue, cart, checkout, contact, and admin.</p>
@@ -102,7 +102,7 @@
             <span class="system-tier-label">Data and Integration Layer</span>
             <span class="system-boundary">Persistence and Delivery Boundary</span>
           </div>
-          <div class="system-row">
+          <div class="system-row connected">
             <article class="system-box data">
               <h3>SQLite Core Data</h3>
               <p>Users, products, artists, artworks, collections, exhibitions, orders, cart state, reset tokens, contacts, and audit data.</p>
@@ -117,6 +117,20 @@
             </article>
           </div>
         </section>
+        <div class="system-sidepanel">
+          <article class="system-sidepanel-card">
+            <strong>Deployment and Publication</strong>
+            <p>GitHub Actions runs CI, security checks, demo-health validation, and GitHub Pages publication as part of the delivery topology.</p>
+          </article>
+          <article class="system-sidepanel-card">
+            <strong>External Service Touchpoints</strong>
+            <p>Email delivery mode, payment-provider abstraction, and monitoring hooks remain outside core persistence but are invoked through the service boundary.</p>
+          </article>
+          <article class="system-sidepanel-card">
+            <strong>Operational Controls</strong>
+            <p>JWT auth, rate limiting, startup checks, config validation, and diagnostics protect the system across request, service, and deployment paths.</p>
+          </article>
+        </div>
         <div class="system-footer">
           <article class="system-footer-card">
             <strong>Primary Request Path</strong>
