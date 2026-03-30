@@ -1,3 +1,12 @@
+# Recent Improvements (2026)
+
+This release includes a comprehensive set of best practice upgrades:
+
+- **CSS:** Introduced CSS variables for spacing, font sizes, and colors; improved accessibility with focus styles; added comments and scalable units for maintainability.
+- **Frontend:** Memoized React context providers (auth, cart) for performance; improved accessibility (live region feedback, icon labels); standardized API error handling with a base client.
+- **Backend:** Added JSDoc comments and security notes; confirmed robust error handling and secure environment variable usage for sensitive config.
+- **Docs:** Updated documentation to reflect architecture, accessibility, maintainability, and security improvements.
+
 # art-museum
 
 [![CI](https://github.com/gitmanfel/art-museum/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/gitmanfel/art-museum/actions/workflows/ci.yml)

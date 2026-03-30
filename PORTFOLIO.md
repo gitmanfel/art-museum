@@ -1,3 +1,13 @@
+# Recent Improvements (2026)
+
+**Best Practice Upgrades:**
+- CSS variables for scalable spacing, font sizes, and colors
+- Accessibility improvements (focus styles, live region feedback, icon labels)
+- Memoized React context providers for performance
+- Standardized API error handling in frontend
+- Backend JSDoc comments and security notes
+- Documentation updated to reflect these improvements
+
 # The Art Museum — Full-Stack Portfolio Project
 
 > A production-ready museum management platform demonstrating modern web engineering with React Native, Node.js, and SQLite. Built to showcase real-world application architecture, testing practices, and business logic implementation.
