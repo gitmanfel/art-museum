@@ -3,31 +3,46 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Art Museum Publish Playbook</title>
+  <title>Art Museum Publication Review Pack</title>
   <link rel="stylesheet" href="./styles.css" />
 </head>
 <body>
   <main class="wrap">
     <span class="badge">PUBLISH PLAYBOOK</span>
-    <h1>GitHub Pages Deployment Steps</h1>
-    <p class="sub">How this site is published and how to troubleshoot workflow failures.</p>
+    <h1>Publication Review Pack</h1>
+    <p class="sub">Publication and review guide for this project, covering deployment, audience-page mapping, and troubleshooting for delivery issues.</p>
     <article class="detail">
-      <h2>Publication flow</h2>
+      <h2>Publication Flow</h2>
       <ul class="clean">
         <li>Push changes to <code>docs/</code> on <code>main</code>.</li>
         <li>Workflow <code>.github/workflows/pages.yml</code> uploads docs artifact.</li>
         <li>GitHub deploys the artifact to Pages URL.</li>
+        <li>Root-level redirect pages preserve compatibility when Pages serves root paths rather than only <code>docs/</code> deep links.</li>
+      </ul>
+      <h2>Audience Page Map</h2>
+      <ul class="clean">
+        <li><strong>Recruiter page:</strong> business impact, role fit, and hiring summary.</li>
+        <li><strong>Hiring manager page:</strong> delivery quality, architecture choices, maintainability, and execution signal.</li>
+        <li><strong>IT / engineering page:</strong> runtime architecture, security, testing, and CI/CD details.</li>
+        <li><strong>Case study and share kit:</strong> narrative and reusable wording for outreach and interviews.</li>
       </ul>
       <h2>Troubleshooting</h2>
       <ul class="clean">
         <li>Check Settings -> Pages -> Source is GitHub Actions.</li>
         <li>Check Actions logs for the Pages workflow run.</li>
         <li>Verify docs files exist and commit reached main branch.</li>
+        <li>If a deep link returns 404, verify the matching root redirect page exists and points to the intended docs page.</li>
+        <li>Retest after short CDN propagation when Pages deploys successfully but content has not refreshed yet.</li>
       </ul>
     </article>
     <div class="top-actions">
       <a class="btn" href="./index.html">Back to Hub</a>
+      <a class="btn alt" href="./portfolio-showcase.html">Case Study</a>
+      <a class="btn alt" href="./share-kit.html">Share Kit</a>
+      <a class="btn alt" href="./portfolio-recruiter.html">Recruiter Version</a>
+      <a class="btn alt" href="./portfolio-hiring-manager.html">Manager Version</a>
     </div>
+    <footer>The Art Museum • Publication and review path</footer>
   </main>
 </body>
 </html>

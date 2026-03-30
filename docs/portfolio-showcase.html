@@ -3,28 +3,60 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Art Museum Portfolio Case Study</title>
+  <title>Art Museum Case Study Review Pack</title>
   <link rel="stylesheet" href="./styles.css" />
 </head>
 <body>
   <main class="wrap">
     <span class="badge">CASE STUDY</span>
-    <h1>The Art Museum Portfolio Narrative</h1>
-    <p class="sub">A recruiter-friendly narrative: problem, architecture, implementation, test proof, and business impact.</p>
+    <h1>Case Study Review Pack</h1>
+    <p class="sub">Full case-study coverage of the project, including business problem, product scope, architecture, implementation decisions, test evidence, and hiring value.</p>
     <div class="top-actions">
       <a class="btn" href="./index.html">Back to Hub</a>
+      <a class="btn alt" href="./portfolio-recruiter.html">Recruiter Version</a>
+      <a class="btn alt" href="./portfolio-hiring-manager.html">Manager Version</a>
+      <a class="btn alt" href="./architecture.html">IT Version</a>
+      <a class="btn alt" href="./share-kit.html">Share Kit</a>
       <a class="btn alt" href="https://github.com/gitmanfel/art-museum/blob/main/PORTFOLIO.md" target="_blank" rel="noreferrer">Open Source Portfolio Doc</a>
     </div>
 
     <article class="detail">
-      <h2>Project Story</h2>
+      <h2>Problem and Product Scope</h2>
       <ul class="clean">
-        <li>Built a full-stack museum platform with ticketing, memberships, catalogue browsing, commerce, and admin operations.</li>
-        <li>Structured as React Native + Express + SQLite with seeded demo data for realistic behavior validation.</li>
-        <li>Implemented security-aware authentication, role-based access, configuration checks, and CI verification gates.</li>
-        <li>Validated with backend and frontend automated suites, plus demo health command for seeded-data integrity.</li>
+        <li>Built a full-stack museum platform covering ticketing, memberships, catalogue browsing, commerce, checkout, contact, and admin-facing operations.</li>
+        <li>Designed it as a realistic product demo rather than a static showcase, with seeded datasets and user flows that reflect actual application behavior.</li>
+        <li>Created audience-specific public documentation so the project can be reviewed safely even when the source repository remains private.</li>
       </ul>
     </article>
+
+    <article class="detail">
+      <h2>Implementation Overview</h2>
+      <ul class="clean">
+        <li><strong>Frontend:</strong> React Native application with web support, screen-based navigation, authentication flows, cart context, and role-aware experiences.</li>
+        <li><strong>Backend:</strong> Express API with route/controller/repository separation and service modules for mailing, payment abstraction, startup checks, and monitoring hooks.</li>
+        <li><strong>Persistence:</strong> SQLite-backed relational model for users, products, artists, artworks, collections, exhibitions, orders, contacts, and reset tokens.</li>
+        <li><strong>UX refinement:</strong> clickable artists, collections, and shop items, artwork detail interactions, logout support, and artist pagination.</li>
+      </ul>
+    </article>
+
+    <article class="detail">
+      <h2>Quality and Delivery Evidence</h2>
+      <ul class="clean">
+        <li>Implemented automated backend and frontend test suites to verify business flows and screen behavior.</li>
+        <li>Added CI workflows for test execution, security checks, Pages publication, and demo-health validation.</li>
+        <li>Included deterministic verification commands such as <code>verify:demo</code> and <code>demo:health</code> to support fast review and repeatable demos.</li>
+      </ul>
+    </article>
+
+    <article class="detail">
+      <h2>Why This Project Matters</h2>
+      <ul class="clean">
+        <li>Shows full-stack ownership from user interface through API and data model design.</li>
+        <li>Demonstrates communication maturity by translating the same implementation for recruiters, managers, and IT reviewers.</li>
+        <li>Provides a portfolio artifact that is practical for interviews, stakeholder reviews, and hiring conversations.</li>
+      </ul>
+    </article>
+    <footer>The Art Museum • Case study review path</footer>
   </main>
 </body>
 </html>

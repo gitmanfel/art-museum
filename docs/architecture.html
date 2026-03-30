@@ -3,22 +3,55 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Art Museum Technical Architecture</title>
+  <title>Art Museum IT Review Pack</title>
   <link rel="stylesheet" href="./styles.css" />
 </head>
 <body>
   <main class="wrap">
-    <span class="badge">TECHNICAL ARCHITECTURE</span>
-    <h1>System Map and Feature Coverage</h1>
-    <p class="sub">As-built architecture with runtime layers, navigation structure, and data model relationships.</p>
+    <span class="badge">IT / ENGINEERING EDITION</span>
+    <h1>IT Review Pack</h1>
+    <p class="sub">Complete implementation view for engineers and IT reviewers, covering architecture, data, security, test strategy, and deployability.</p>
     <article class="detail">
-      <h2>Read the full architecture map</h2>
-      <p class="sub">The complete architecture is maintained in repository documentation.</p>
+      <h2>Runtime and Application Architecture</h2>
+      <ul class="clean">
+        <li><strong>Frontend:</strong> React Native web-capable client with domain screens (auth, catalogue, artists, collections, cart, checkout, contact, admin).</li>
+        <li><strong>Backend:</strong> Express application split into app bootstrap, route modules, controller handlers, service layer utilities, and repository-backed data access.</li>
+        <li><strong>Data:</strong> SQLite persistence via repository modules for users, catalogue entities, cart, orders, reset tokens, contacts, and admin audit records.</li>
+        <li><strong>Flow:</strong> client service modules call REST endpoints, middleware enforces auth and request constraints, and repositories isolate SQL concerns.</li>
+      </ul>
+    </article>
+    <article class="detail">
+      <h2>Feature Specifications</h2>
+      <ul class="clean">
+        <li><strong>Authentication:</strong> register/login, token-based session handling, secure storage utilities, reset-email and token flow support.</li>
+        <li><strong>Catalogue and discovery:</strong> artists, collections, exhibitions, artworks, and shop products with clickable detail interactions.</li>
+        <li><strong>Commerce:</strong> cart operations, checkout orchestration, payment provider abstraction, and status visibility.</li>
+        <li><strong>Admin and operations:</strong> role-aware access, dashboard-oriented features, and contact/message management pathways.</li>
+      </ul>
+    </article>
+    <article class="detail">
+      <h2>Security, Reliability, and Delivery Specs</h2>
+      <ul class="clean">
+        <li><strong>Security controls:</strong> auth middleware, route protection, rate-limiting support, and controlled password reset lifecycle.</li>
+        <li><strong>Config safety:</strong> startup and config-check services with script-based validation to catch environment issues early.</li>
+        <li><strong>Test coverage:</strong> backend Jest suites for auth/cart/catalogue/checkout/admin/startup/contact plus frontend Jest suites for screen behavior.</li>
+        <li><strong>CI/CD:</strong> automated workflows for test execution, security checks, and publication tasks; demo health checks for seeded data thresholds.</li>
+      </ul>
+    </article>
+    <article class="detail">
+      <h2>Reference Documentation</h2>
+      <p class="sub">Use the full repository docs for implementation traceability and interview walkthrough preparation.</p>
       <div class="top-actions">
         <a class="btn" href="https://github.com/gitmanfel/art-museum/blob/main/ARCHITECTURE.md" target="_blank" rel="noreferrer">Open ARCHITECTURE.md</a>
+        <a class="btn alt" href="https://github.com/gitmanfel/art-museum/blob/main/README.md" target="_blank" rel="noreferrer">Open README.md</a>
+        <a class="btn alt" href="./portfolio-recruiter.html">Recruiter Version</a>
+        <a class="btn alt" href="./portfolio-hiring-manager.html">Manager Version</a>
+        <a class="btn alt" href="./portfolio-showcase.html">Case Study</a>
+        <a class="btn alt" href="./share-kit.html">Share Kit</a>
         <a class="btn alt" href="./index.html">Back to Hub</a>
       </div>
     </article>
+    <footer>The Art Museum • IT and engineering review path</footer>
   </main>
 </body>
 </html>

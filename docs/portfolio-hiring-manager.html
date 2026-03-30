@@ -3,27 +3,49 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Art Museum Hiring Manager Edition</title>
+  <title>Art Museum Manager Review Pack</title>
   <link rel="stylesheet" href="./styles.css" />
 </head>
 <body>
   <main class="wrap">
     <span class="badge">HIRING MANAGER EDITION</span>
-    <h1>Technical Depth Summary</h1>
-    <p class="sub">Architecture, operational decisions, and quality control signals.</p>
+    <h1>Manager Review Pack</h1>
+    <p class="sub">Complete system coverage translated into manager-level decision language: execution quality, maintainability, and hiring signal.</p>
     <article class="detail">
-      <h2>Engineering Depth</h2>
+      <h2>What Was Delivered</h2>
       <ul class="clean">
-        <li>Layered backend design with explicit route/controller/service/repository boundaries.</li>
-        <li>Normalized relational data model with transaction-safe operations and seeded demo datasets.</li>
-        <li>Role-aware navigation and authenticated user flows across frontend domains.</li>
-        <li>Deterministic root scripts: <code>verify:demo</code>, <code>demo:health</code>, backend/frontend tests.</li>
+        <li>Shippable full-stack platform for museum operations and visitor commerce, including ticketing, catalogue, membership, checkout, and contact.</li>
+        <li>Audience-specific documentation and publication strategy for recruiting, leadership review, and technical deep dives.</li>
+        <li>Improved UX interactions: logout support, clickable catalogue entities, and artist/artwork navigation with pagination.</li>
+      </ul>
+    </article>
+    <article class="detail">
+      <h2>Complete Specs in Manager Language</h2>
+      <ul class="clean">
+        <li><strong>Architecture:</strong> layered backend (routes/controllers/services/repositories) with clear ownership boundaries that support maintainability and onboarding.</li>
+        <li><strong>Data model:</strong> relational SQLite schema with realistic seeded datasets and repository abstractions for predictable data access patterns.</li>
+        <li><strong>Security and risk controls:</strong> authentication middleware, role-aware flows, rate limiting, configuration verification, and reset-token lifecycle handling.</li>
+        <li><strong>Quality controls:</strong> backend and frontend test suites, health verification scripts, and CI pipelines that gate merges and reduce regression risk.</li>
+        <li><strong>Operational readiness:</strong> startup status checks, monitoring service hooks, and deterministic commands for local/demo validation.</li>
+        <li><strong>Delivery process:</strong> reproducible scripts for testing and demo confidence (<code>verify:demo</code>, <code>demo:health</code>), plus issue-oriented docs.</li>
+      </ul>
+    </article>
+    <article class="detail">
+      <h2>Hiring Decision Signals</h2>
+      <ul class="clean">
+        <li>Can translate product requirements into modular architecture and testable implementation.</li>
+        <li>Shows a clear bias for reliability through automation rather than manual-only validation.</li>
+        <li>Communicates complex systems clearly to multiple audiences, reducing cross-team coordination cost.</li>
       </ul>
     </article>
     <div class="top-actions">
-      <a class="btn" href="./architecture.html">Technical Architecture</a>
+      <a class="btn" href="./architecture.html">IT Version</a>
+      <a class="btn alt" href="./portfolio-recruiter.html">Recruiter Version</a>
+      <a class="btn alt" href="./portfolio-showcase.html">Case Study</a>
+      <a class="btn alt" href="./share-kit.html">Share Kit</a>
       <a class="btn alt" href="./index.html">Back to Hub</a>
     </div>
+    <footer>The Art Museum • Manager review path</footer>
   </main>
 </body>
 </html>

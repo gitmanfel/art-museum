@@ -3,55 +3,98 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>The Art Museum Portfolio Pages</title>
+    <title>The Art Museum Review Pack</title>
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
     <main class="wrap">
       <span class="badge">PUBLIC SHOWCASE</span>
-      <h1>The Art Museum Portfolio Pages</h1>
+      <h1>The Art Museum Review Pack</h1>
       <p class="sub">
-        This public area contains portfolio-safe project presentation pages without exposing private source code.
+        This public site presents the full project specification in portfolio-safe form, rewritten for recruiters, hiring managers, and IT reviewers without exposing private source code.
       </p>
       <div class="top-actions">
         <a class="btn" href="https://github.com/gitmanfel/art-museum" target="_blank" rel="noreferrer">View Repository</a>
         <a class="btn alt" href="https://github.com/gitmanfel/art-museum/blob/main/PORTFOLIO.md" target="_blank" rel="noreferrer">Open Portfolio Doc</a>
       </div>
 
+      <article class="detail hero-panel">
+        <h2>How to Review This Project</h2>
+        <p class="sub">
+          Start with the page that matches your role. Every page covers the same system, but the language is tuned for screening, delivery review, or technical evaluation.
+        </p>
+        <div class="audience-grid">
+          <section class="mini-card">
+            <h3>Recruiters</h3>
+            <p>Use the recruiter page for role fit, scope, stack summary, and business-facing impact.</p>
+            <a class="link" href="./portfolio-recruiter.html">Open Recruiter Page</a>
+          </section>
+          <section class="mini-card">
+            <h3>Hiring Managers</h3>
+            <p>Use the manager page for delivery quality, ownership, maintainability, and execution signals.</p>
+            <a class="link" href="./portfolio-hiring-manager.html">Open Manager Page</a>
+          </section>
+          <section class="mini-card">
+            <h3>IT / Engineering</h3>
+            <p>Use the technical page for architecture, security, testing, CI/CD, and implementation structure.</p>
+            <a class="link" href="./architecture.html">Open IT Page</a>
+          </section>
+        </div>
+      </article>
+
+      <article class="detail">
+        <h2>Project Scope at a Glance</h2>
+        <ul class="clean">
+          <li><strong>User-facing product:</strong> ticketing, museum catalogue browsing, artist and artwork discovery, shop/cart/checkout, memberships, and contact flows.</li>
+          <li><strong>Admin and operations:</strong> role-aware access, admin workflows, configuration checks, startup status handling, and monitoring hooks.</li>
+          <li><strong>Engineering base:</strong> React Native frontend, Express backend, SQLite persistence, auth middleware, repository pattern, and automated tests.</li>
+          <li><strong>Delivery proof:</strong> seeded demo data, CI pipelines, Pages publication, and documentation tailored for different review audiences.</li>
+        </ul>
+      </article>
+
       <section class="grid">
         <article class="card">
           <h2>Portfolio Case Study</h2>
-          <p>Recruiter-friendly project narrative, architecture summary, and demo story.</p>
+          <p>End-to-end narrative covering the problem, product scope, implementation choices, delivery proof, and portfolio value.</p>
           <a class="link" href="./portfolio-showcase.html">Open Case Study</a>
         </article>
         <article class="card">
           <h2>Share Kit</h2>
-          <p>Ready-to-use copy for CV, LinkedIn, recruiter outreach, and manager intros.</p>
+          <p>Ready-to-use messaging for CVs, LinkedIn, recruiter outreach, manager conversations, and technical introductions.</p>
           <a class="link" href="./share-kit.html">Open Share Kit</a>
         </article>
         <article class="card">
           <h2>Publish Playbook</h2>
-          <p>Step-by-step Pages setup, URL patterns, and troubleshooting notes.</p>
+          <p>Publication model, audience-page map, URL strategy, and troubleshooting guidance for GitHub Pages delivery.</p>
           <a class="link" href="./publish-playbook.html">Open Playbook</a>
         </article>
         <article class="card">
           <h2>Recruiter Edition</h2>
-          <p>Concise business-impact summary tailored for initial recruiter screening.</p>
+          <p>Full project specs translated into recruiter language: role fit, project scope, stack summary, and screening value.</p>
           <a class="link" href="./portfolio-recruiter.html">Open Recruiter Page</a>
         </article>
         <article class="card">
           <h2>Hiring Manager Edition</h2>
-          <p>Technical depth on architecture, delivery decisions, and operational engineering.</p>
+          <p>Manager-oriented view of architecture choices, delivery quality, maintainability, and execution discipline.</p>
           <a class="link" href="./portfolio-hiring-manager.html">Open Manager Page</a>
         </article>
         <article class="card">
-          <h2>Technical Architecture</h2>
-          <p>Architecture documentation covering routes, services, schema design, and CI.</p>
-          <a class="link" href="./architecture.html">Open Architecture</a>
+          <h2>IT / Engineering Edition</h2>
+          <p>Implementation-focused specs covering runtime architecture, security controls, test strategy, and CI/CD.</p>
+          <a class="link" href="./architecture.html">Open IT Page</a>
         </article>
       </section>
 
-      <footer>The Art Museum • Portfolio-safe docs</footer>
+      <article class="detail">
+        <h2>Suggested Review Order</h2>
+        <ul class="clean">
+          <li><strong>Fast screen:</strong> Recruiter Edition -> Case Study -> Share Kit.</li>
+          <li><strong>Management review:</strong> Hiring Manager Edition -> Case Study -> Publish Playbook.</li>
+          <li><strong>Technical deep dive:</strong> IT / Engineering Edition -> Case Study -> repository docs.</li>
+        </ul>
+      </article>
+
+      <footer>The Art Museum • Public review pack</footer>
     </main>
   </body>
 </html>
