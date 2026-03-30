@@ -23,6 +23,24 @@
     <article class="detail">
       <h2>System Architecture Diagram</h2>
       <div class="system-diagram" aria-label="System architecture diagram">
+        <div class="system-meta" aria-label="Architecture metadata">
+          <div class="system-meta-item">
+            <span class="system-meta-label">Primary Client</span>
+            <span class="system-meta-value">React Native Web App</span>
+          </div>
+          <div class="system-meta-item">
+            <span class="system-meta-label">Application Core</span>
+            <span class="system-meta-value">Express Route, Service, Repository Layers</span>
+          </div>
+          <div class="system-meta-item">
+            <span class="system-meta-label">Persistence</span>
+            <span class="system-meta-value">SQLite with Repository Isolation</span>
+          </div>
+          <div class="system-meta-item">
+            <span class="system-meta-label">Control Surface</span>
+            <span class="system-meta-value">JWT Auth, Middleware, CI Verification</span>
+          </div>
+        </div>
         <div class="system-legend" aria-label="Architecture legend">
           <span class="system-legend-item"><span class="system-legend-dot client"></span>Client and UI</span>
           <span class="system-legend-item"><span class="system-legend-dot application"></span>Application services</span>
@@ -90,6 +108,20 @@
             </article>
           </div>
         </section>
+        <div class="system-footer">
+          <article class="system-footer-card">
+            <strong>Primary Request Path</strong>
+            <p>Screen interaction -> authenticated API request -> controller and service execution -> repository call -> persisted result.</p>
+          </article>
+          <article class="system-footer-card">
+            <strong>Operational Boundaries</strong>
+            <p>Startup checks, config validation, email delivery mode, payment abstraction, and CI workflows sit outside the core UI flow but remain part of the architecture.</p>
+          </article>
+          <article class="system-footer-card">
+            <strong>Design Intent</strong>
+            <p>The architecture favors traceability, testability, and maintainable ownership boundaries rather than tightly coupled feature code.</p>
+          </article>
+        </div>
         <p class="system-caption">This board shows the full request path and responsibility split: user interaction enters the client, flows through secured API orchestration, and reaches repository-backed persistence and external integrations.</p>
       </div>
       <ul class="clean">
