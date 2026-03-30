@@ -3,6 +3,7 @@
 const request = require('supertest');
 const app = require('../app');
 const { closeDb } = require('../db/database');
+const { getDb } = require('../db/database');
 
 describe('Checkout Endpoints', () => {
   beforeAll(() => {
@@ -69,5 +70,86 @@ describe('Checkout Endpoints', () => {
     expect(res.body).toHaveProperty('amountCents', 16000);
     expect(res.body).toHaveProperty('currency', 'usd');
     expect(res.body).toHaveProperty('cartTotal', 160);
+  });
+
+  it('fulfills successful payment webhook and clears cart', async () => {
+    // Ensure cart has items for this user prior to webhook.
+    await request(app)
+      .post('/api/cart')
+      .set(auth())
+      .send({ itemType: 'ticket', itemId: 'ticket-adults', quantity: 2 })
+      .expect(200);
+
+    const paymentIntentId = 'pi_mock_test_checkout_1';
+    const payload = {
+      id: 'evt_mock_1',
+      type: 'payment_intent.succeeded',
+      data: {
+        object: {
+          id: paymentIntentId,
+          amount: 17600,
+          amount_received: 17600,
+          currency: 'usd',
+          metadata: {
+            userId: 'checkout@example.com',
+          },
+        },
+      },
+    };
+
+    // Replace metadata userId with actual DB user id for this email
+    const user = getDb().prepare('SELECT id FROM users WHERE email = ?').get('checkout@example.com');
+    payload.data.object.metadata.userId = user.id;
+
+    await request(app)
+      .post('/api/checkout/webhook')
+      .set('Content-Type', 'application/json')
+      .send(payload)
+      .expect(200);
+
+    const order = getDb()
+      .prepare('SELECT * FROM orders WHERE payment_intent_id = ?')
+      .get(paymentIntentId);
+    expect(order).toBeDefined();
+    expect(order.status).toBe('paid');
+
+    const cartRows = getDb().prepare('SELECT * FROM cart_items WHERE user_id = ?').all(user.id);
+    expect(cartRows).toHaveLength(0);
+  });
+
+  it('treats duplicate payment webhook as idempotent', async () => {
+    const user = getDb().prepare('SELECT id FROM users WHERE email = ?').get('checkout@example.com');
+
+    const payload = {
+      id: 'evt_mock_2',
+      type: 'payment_intent.succeeded',
+      data: {
+        object: {
+          id: 'pi_mock_test_checkout_2',
+          amount: 1000,
+          amount_received: 1000,
+          currency: 'usd',
+          metadata: { userId: user.id },
+        },
+      },
+    };
+
+    await request(app)
+      .post('/api/checkout/webhook')
+      .set('Content-Type', 'application/json')
+      .send(payload)
+      .expect(200);
+
+    await request(app)
+      .post('/api/checkout/webhook')
+      .set('Content-Type', 'application/json')
+      .send(payload)
+      .expect(200);
+
+    const rows = getDb()
+      .prepare('SELECT * FROM orders WHERE payment_intent_id = ?')
+      .all('pi_mock_test_checkout_2');
+
+    expect(rows).toHaveLength(1);
   });
 });

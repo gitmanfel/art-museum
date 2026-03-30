@@ -10,6 +10,9 @@ const app = express();
 
 app.use(helmet());
 app.use(cors({ origin: '*', optionsSuccessStatus: 200 }));
+
+// Stripe webhook verification requires raw request body, so mount this before JSON parsing.
+app.use('/api/checkout/webhook', express.raw({ type: 'application/json' }));
 app.use(express.json());
 
 app.use('/api/auth',      authRoutes);

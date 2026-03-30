@@ -1,7 +1,8 @@
 'use strict';
 
 const cartRepo = require('../db/cartRepository');
-const { createPaymentIntent } = require('../services/paymentProvider');
+const orderRepo = require('../db/orderRepository');
+const { createPaymentIntent, constructWebhookEvent, PROVIDER_STRIPE, PROVIDER_MOCK } = require('../services/paymentProvider');
 
 const calcCartTotal = (items) =>
   items.reduce((sum, i) => sum + i.unit_price * i.quantity, 0);
@@ -48,4 +49,51 @@ exports.createCheckoutIntent = async (req, res) => {
     }
     return res.status(502).json({ error: 'Could not create payment intent' });
   }
+};
+
+exports.handleWebhook = (req, res) => {
+  const signature = req.headers['stripe-signature'];
+  let event;
+
+  try {
+    event = constructWebhookEvent({ rawBody: req.body, signature });
+  } catch (error) {
+    if (error.code === 'webhook_not_configured') {
+      return res.status(503).json({ error: 'Payment webhook provider is unavailable' });
+    }
+    if (error.code === 'invalid_webhook_signature' || error.code === 'invalid_webhook_payload') {
+      return res.status(400).json({ error: 'Invalid webhook event' });
+    }
+    return res.status(400).json({ error: 'Could not parse webhook event' });
+  }
+
+  if (event.type !== 'payment_intent.succeeded') {
+    return res.status(200).json({ received: true, ignored: true });
+  }
+
+  const intent = event.data?.object;
+  const userId = intent?.metadata?.userId;
+  const paymentIntentId = intent?.id;
+
+  if (!userId || !paymentIntentId) {
+    return res.status(400).json({ error: 'Missing required payment metadata' });
+  }
+
+  const existing = orderRepo.findByPaymentIntentId(paymentIntentId);
+  if (existing) {
+    return res.status(200).json({ received: true, duplicate: true });
+  }
+
+  orderRepo.createFulfilledOrder({
+    userId,
+    paymentIntentId,
+    amountCents: intent.amount_received || intent.amount || 0,
+    currency: intent.currency || 'usd',
+    provider: signature ? PROVIDER_STRIPE : PROVIDER_MOCK,
+  });
+
+  // Cart is only cleared after confirmed payment success.
+  cartRepo.clearCart(userId);
+
+  return res.status(200).json({ received: true, fulfilled: true });
 };

@@ -110,6 +110,21 @@ const applySchema = (db) => {
     );
 
     CREATE INDEX IF NOT EXISTS idx_cart_user ON cart_items(user_id);
+
+    -- Orders
+    CREATE TABLE IF NOT EXISTS orders (
+      id                 INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id            TEXT NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
+      payment_intent_id  TEXT NOT NULL UNIQUE,
+      amount_cents       INTEGER NOT NULL,
+      currency           TEXT NOT NULL,
+      provider           TEXT NOT NULL,
+      status             TEXT NOT NULL DEFAULT 'paid',
+      fulfilled_at       INTEGER NOT NULL,
+      created_at         INTEGER NOT NULL DEFAULT (unixepoch())
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_orders_user ON orders(user_id);
   `);
 
   seedCatalogue(db);
