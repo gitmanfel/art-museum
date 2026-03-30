@@ -15,6 +15,7 @@ const CATEGORY_OPTIONS = ['all', 'decorative-arts', 'paintings', 'photography', 
 
 const CollectionsScreen = () => {
   const [collections, setCollections] = useState([]);
+  const [selectedCollection, setSelectedCollection] = useState(null);
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('all');
   const [loading, setLoading] = useState(true);
@@ -37,7 +38,10 @@ const CollectionsScreen = () => {
       setError('');
       try {
         const data = await getCollections(filters);
-        if (!cancelled) setCollections(data);
+        if (!cancelled) {
+          setCollections(data);
+          setSelectedCollection((current) => data.find((item) => item.id === current?.id) || data[0] || null);
+        }
       } catch (e) {
         if (!cancelled) setError(e.response?.data?.error || 'Unable to load collections.');
       } finally {
@@ -52,13 +56,16 @@ const CollectionsScreen = () => {
   }, [filters]);
 
   const renderItem = ({ item }) => (
-    <View style={styles.gridItem}>
+    <TouchableOpacity
+      style={[styles.gridItem, selectedCollection?.id === item.id && styles.gridItemSelected]}
+      onPress={() => setSelectedCollection(item)}
+    >
       <Image source={{ uri: item.image_url }} style={styles.collectionImage} />
       <Text style={styles.collectionTitle}>{item.name.toUpperCase()}</Text>
       <Text style={styles.collectionDescription} numberOfLines={2}>
         {item.description || 'Explore highlights from this collection.'}
       </Text>
-    </View>
+    </TouchableOpacity>
   );
 
   return (
@@ -117,6 +124,19 @@ const CollectionsScreen = () => {
           columnWrapperStyle={styles.row}
           showsVerticalScrollIndicator={false}
           ListEmptyComponent={<Text style={styles.emptyText}>No collections match this filter.</Text>}
+          ListFooterComponent={
+            selectedCollection ? (
+              <View style={styles.reviewPanel}>
+                <Text style={styles.reviewTitle}>{selectedCollection.name}</Text>
+                <Text style={styles.reviewMeta}>
+                  {selectedCollection.category || 'collection'} • {selectedCollection.era_start} - {selectedCollection.era_end}
+                </Text>
+                <Text style={styles.reviewBody}>
+                  {selectedCollection.description || 'Explore highlights and related artworks in this collection.'}
+                </Text>
+              </View>
+            ) : null
+          }
         />
       )}
     </View>
@@ -166,6 +186,9 @@ const styles = StyleSheet.create({
   },
   gridItem: {
     width: '48%',
+  },
+  gridItemSelected: {
+    opacity: 0.85,
   },
   collectionImage: {
     width: '100%',
@@ -224,6 +247,32 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     color: '#777',
     marginTop: 24,
+  },
+  reviewPanel: {
+    marginTop: 6,
+    borderWidth: 1,
+    borderColor: '#ffd1d1',
+    borderRadius: 8,
+    backgroundColor: '#fff6f6',
+    padding: 14,
+    marginBottom: 8,
+  },
+  reviewTitle: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: '#111',
+  },
+  reviewMeta: {
+    marginTop: 4,
+    fontSize: 12,
+    color: '#ff4c4c',
+    textTransform: 'capitalize',
+  },
+  reviewBody: {
+    marginTop: 8,
+    fontSize: 13,
+    color: '#444',
+    lineHeight: 18,
   },
 });
 

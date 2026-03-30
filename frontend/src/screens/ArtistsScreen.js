@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo, useState } from 'react';
 import { View, Text, StyleSheet, Image, ScrollView, FlatList, Dimensions, TouchableOpacity } from 'react-native';
 
 const { width } = Dimensions.get('window');
@@ -11,6 +11,7 @@ const ARTISTS = [
     medium: 'Photography',
     image: 'https://images.unsplash.com/photo-1555620956-f64f895fbcd0?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80',
     bio: 'Influential documentary photographer best known for her Depression-era work for the Farm Security Administration.',
+    works: ['Migrant Mother', 'White Angel Breadline', 'American Exodus'],
   },
   {
     id: '2',
@@ -19,6 +20,7 @@ const ARTISTS = [
     medium: 'Design & Architecture',
     image: 'https://images.unsplash.com/photo-1573510599544-785c4fc2195f?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80',
     bio: 'De Stijl architect and furniture designer famous for the Red and Blue Chair and the Rietveld Schröder House.',
+    works: ['Red and Blue Chair', 'Rietveld Schröder House', 'Zig-Zag Chair'],
   },
   {
     id: '3',
@@ -27,6 +29,7 @@ const ARTISTS = [
     medium: 'Painting & Sculpture',
     image: 'https://images.unsplash.com/photo-1579783901586-d88db74b4fe4?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80',
     bio: 'Co-founder of Cubism and one of the most influential artists of the 20th century.',
+    works: ['Guernica', "Les Demoiselles d'Avignon", 'The Weeping Woman'],
   },
   {
     id: '4',
@@ -35,6 +38,7 @@ const ARTISTS = [
     medium: 'Painting',
     image: 'https://images.unsplash.com/photo-1544335448-f62d1c68fce1?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80',
     bio: 'American Realism painter celebrated for his seascapes and Civil War scenes.',
+    works: ['The Gulf Stream', 'Breezing Up', 'Northeaster'],
   },
   {
     id: '5',
@@ -43,16 +47,24 @@ const ARTISTS = [
     medium: 'Industrial Design',
     image: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80',
     bio: 'Designer at Braun whose "Ten Principles of Good Design" shaped generations of product designers.',
+    works: ['Braun SK4', 'Braun T3 Pocket Radio', '606 Universal Shelving'],
   },
 ];
 
 const CARD_WIDTH = (width - 48) / 2;
 
-const ArtistsScreen = ({ navigation }) => {
+const ArtistsScreen = () => {
+  const [selectedArtistId, setSelectedArtistId] = useState(ARTISTS[0]?.id || null);
+
+  const selectedArtist = useMemo(
+    () => ARTISTS.find((artist) => artist.id === selectedArtistId) || ARTISTS[0],
+    [selectedArtistId]
+  );
+
   const renderItem = ({ item }) => (
     <TouchableOpacity
-      style={styles.card}
-      onPress={() => navigation.navigate('Exhibitions & Events')}
+      style={[styles.card, selectedArtistId === item.id && styles.cardSelected]}
+      onPress={() => setSelectedArtistId(item.id)}
     >
       <Image source={{ uri: item.image }} style={styles.cardImage} />
       <View style={styles.cardBody}>
@@ -77,6 +89,19 @@ const ArtistsScreen = ({ navigation }) => {
         columnWrapperStyle={styles.row}
         contentContainerStyle={styles.grid}
         showsVerticalScrollIndicator={false}
+        ListFooterComponent={
+          selectedArtist ? (
+            <View style={styles.reviewPanel}>
+              <Text style={styles.reviewTitle}>{selectedArtist.name}</Text>
+              <Text style={styles.reviewDates}>{selectedArtist.dates} • {selectedArtist.medium}</Text>
+              <Text style={styles.reviewBio}>{selectedArtist.bio}</Text>
+              <Text style={styles.workHeading}>Featured Works</Text>
+              {selectedArtist.works.map((work) => (
+                <Text key={work} style={styles.workItem}>• {work}</Text>
+              ))}
+            </View>
+          ) : null
+        }
       />
     </View>
   );
@@ -90,11 +115,48 @@ const styles = StyleSheet.create({
   grid:         { paddingHorizontal: 16, paddingBottom: 20 },
   row:          { justifyContent: 'space-between', marginBottom: 20 },
   card:         { width: CARD_WIDTH },
+  cardSelected: { opacity: 0.85 },
   cardImage:    { width: '100%', height: 180, resizeMode: 'cover', backgroundColor: '#f0f0f0' },
   cardBody:     { paddingTop: 8 },
   cardName:     { fontSize: 13, fontWeight: 'bold', color: '#000', marginBottom: 2 },
   cardDates:    { fontSize: 11, color: '#aaa', marginBottom: 1 },
   cardMedium:   { fontSize: 11, color: '#ff4c4c', fontWeight: '600' },
+  reviewPanel: {
+    marginTop: 8,
+    backgroundColor: '#fff6f6',
+    borderWidth: 1,
+    borderColor: '#ffd1d1',
+    borderRadius: 8,
+    padding: 14,
+  },
+  reviewTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#111',
+  },
+  reviewDates: {
+    marginTop: 4,
+    color: '#ff4c4c',
+    fontWeight: '600',
+    fontSize: 12,
+  },
+  reviewBio: {
+    marginTop: 8,
+    color: '#444',
+    lineHeight: 18,
+    fontSize: 13,
+  },
+  workHeading: {
+    marginTop: 12,
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#222',
+  },
+  workItem: {
+    marginTop: 4,
+    color: '#444',
+    fontSize: 12,
+  },
 });
 
 export default ArtistsScreen;

@@ -53,6 +53,14 @@ const CartHeaderButton = ({ navigation }) => {
 
 // Custom Drawer component to match the Prototype (Image 3)
 const CustomDrawerContent = (props) => {
+  const { clearSession } = useAuth();
+
+  const handleLogout = async () => {
+    await clearSession();
+    props.navigation.closeDrawer();
+    props.navigation.getParent()?.navigate('Login');
+  };
+
   return (
     <DrawerContentScrollView {...props} style={styles.drawerContainer}>
       <View style={styles.searchContainer}>
@@ -67,6 +75,10 @@ const CustomDrawerContent = (props) => {
       
       {/* DrawerItemList automatically renders the defined screens */}
       <DrawerItemList {...props} />
+
+      <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
+        <Text style={styles.logoutBtnText}>Logout</Text>
+      </TouchableOpacity>
     </DrawerContentScrollView>
   );
 };
@@ -227,6 +239,21 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 10,
     fontWeight: 'bold',
+  },
+  logoutBtn: {
+    marginHorizontal: 20,
+    marginTop: 20,
+    marginBottom: 24,
+    borderWidth: 1,
+    borderColor: '#fff',
+    borderRadius: 4,
+    paddingVertical: 12,
+    alignItems: 'center',
+  },
+  logoutBtnText: {
+    color: '#fff',
+    fontWeight: '700',
+    letterSpacing: 0.5,
   },
 });
 

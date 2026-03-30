@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Image, ScrollView, Dimensions, Pressable, Alert, ActivityIndicator, Platform } from 'react-native';
 import { useCart } from '../context/CartContext';
-import { getProduct } from '../services/catalogue';
+import { getProduct, getProducts } from '../services/catalogue';
 
 const { width } = Dimensions.get('window');
 
@@ -10,6 +10,7 @@ const DEFAULT_PRODUCT_ID = 'product-braun-watch';
 const ShopScreen = ({ navigation }) => {
   const webPress = (handler) => (Platform.OS === 'web' ? { onClick: handler } : {});
   const [product, setProduct] = useState(null);
+  const [products, setProducts] = useState([]);
   const [activeIndex, setActiveIndex] = useState(0);
   const [quantity, setQuantity] = useState(0);
   const [loadingProduct, setLoadingProduct] = useState(true);
@@ -39,6 +40,44 @@ const ShopScreen = ({ navigation }) => {
       isMounted = false;
     };
   }, []);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadProducts = async () => {
+      try {
+        const list = await getProducts();
+        if (isMounted) {
+          setProducts(Array.isArray(list) ? list : []);
+        }
+      } catch (e) {
+        if (isMounted) {
+          setProducts([]);
+        }
+      }
+    };
+
+    loadProducts();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const loadProductById = async (productId) => {
+    if (!productId || productId === product?.id) return;
+    setLoadingProduct(true);
+    setProductError('');
+    try {
+      const data = await getProduct(productId);
+      setProduct(data);
+      setQuantity(0);
+      setActiveIndex(0);
+    } catch (e) {
+      setProductError('Could not load product details.');
+    } finally {
+      setLoadingProduct(false);
+    }
+  };
 
   const onScroll = (event) => {
     const slideSize = event.nativeEvent.layoutMeasurement.width;
@@ -176,6 +215,27 @@ const ShopScreen = ({ navigation }) => {
             : <Text style={styles.addToCartButtonText}>Add to Cart</Text>
           }
         </Pressable>
+
+        <View style={styles.moreSection}>
+          <Text style={styles.moreSectionTitle}>More in Shop</Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.moreList}>
+            {products.map((item) => (
+              <Pressable
+                key={item.id}
+                onPress={() => loadProductById(item.id)}
+                style={[styles.productCard, item.id === product.id && styles.productCardActive]}
+                {...webPress(() => loadProductById(item.id))}
+              >
+                <Image
+                  source={{ uri: item.image_url || item.images?.[0] }}
+                  style={styles.productCardImage}
+                />
+                <Text numberOfLines={1} style={styles.productCardName}>{item.name}</Text>
+                <Text style={styles.productCardPrice}>${Number(item.price).toFixed(2)}</Text>
+              </Pressable>
+            ))}
+          </ScrollView>
+        </View>
       </View>
 
     </ScrollView>
@@ -303,6 +363,49 @@ const styles = StyleSheet.create({
   },
   addToCartButtonDisabled: {
     backgroundColor: '#ccc',
+  },
+  moreSection: {
+    marginTop: 24,
+  },
+  moreSectionTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#222',
+    marginBottom: 10,
+  },
+  moreList: {
+    paddingRight: 12,
+  },
+  productCard: {
+    width: 130,
+    marginRight: 12,
+    borderWidth: 1,
+    borderColor: '#eee',
+    borderRadius: 8,
+    padding: 8,
+    backgroundColor: '#fff',
+  },
+  productCardActive: {
+    borderColor: '#ff4c4c',
+    backgroundColor: '#fff7f7',
+  },
+  productCardImage: {
+    width: '100%',
+    height: 80,
+    borderRadius: 4,
+    backgroundColor: '#f2f2f2',
+    marginBottom: 6,
+  },
+  productCardName: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#222',
+  },
+  productCardPrice: {
+    marginTop: 4,
+    fontSize: 12,
+    color: '#ff4c4c',
+    fontWeight: '700',
   },
 });
 
