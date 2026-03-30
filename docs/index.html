@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>The Art Museum Portfolio</title>
+    <style>
+      :root {
+        --bg: #fffaf8;
+        --ink: #1f1f1f;
+        --accent: #d94841;
+        --accent-dark: #b7322c;
+        --card: #ffffff;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: radial-gradient(circle at top right, #ffe5df, var(--bg) 40%);
+        color: var(--ink);
+      }
+      .wrap {
+        max-width: 980px;
+        margin: 0 auto;
+        padding: 48px 20px 60px;
+      }
+      .hero {
+        background: var(--card);
+        border: 1px solid #f3d3cd;
+        border-radius: 16px;
+        padding: 28px;
+        box-shadow: 0 10px 35px rgba(217, 72, 65, 0.08);
+      }
+      h1 {
+        margin: 0;
+        font-size: 2rem;
+        letter-spacing: 0.02em;
+      }
+      .sub {
+        margin-top: 10px;
+        color: #5b5b5b;
+        line-height: 1.6;
+      }
+      .actions {
+        margin-top: 20px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+      }
+      .btn {
+        display: inline-block;
+        text-decoration: none;
+        padding: 10px 14px;
+        border-radius: 8px;
+        border: 1px solid var(--accent);
+        color: #fff;
+        background: var(--accent);
+        font-weight: 600;
+      }
+      .btn.secondary {
+        color: var(--accent-dark);
+        background: #fff;
+      }
+      .grid {
+        margin-top: 24px;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 14px;
+      }
+      .card {
+        background: #fff;
+        border: 1px solid #f3d3cd;
+        border-radius: 12px;
+        padding: 14px;
+      }
+      .card h2 {
+        margin: 0 0 8px;
+        font-size: 1rem;
+        color: #2a2a2a;
+      }
+      .card p {
+        margin: 0;
+        color: #5f5f5f;
+        line-height: 1.5;
+        font-size: 0.95rem;
+      }
+      .foot {
+        margin-top: 18px;
+        color: #6a6a6a;
+        font-size: 0.9rem;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="wrap">
+      <section class="hero">
+        <h1>The Art Museum</h1>
+        <p class="sub">
+          Full-stack museum platform portfolio showcasing ticketing, memberships, e-commerce,
+          catalogue management, admin workflows, and tested production-style engineering.
+        </p>
+        <div class="actions">
+          <a class="btn" href="https://github.com/gitmanfel/art-museum" target="_blank" rel="noreferrer">View Repository</a>
+          <a class="btn secondary" href="https://github.com/gitmanfel/art-museum/blob/main/PORTFOLIO.md" target="_blank" rel="noreferrer">Open Full Portfolio</a>
+        </div>
+      </section>
+
+      <section class="grid">
+        <article class="card">
+          <h2>What It Demonstrates</h2>
+          <p>Cross-platform React Native frontend, Express backend, SQLite data model, and secure auth flows.</p>
+        </article>
+        <article class="card">
+          <h2>Quality Signals</h2>
+          <p>Automated test coverage, CI workflows, security checks, and demo health verification gates.</p>
+        </article>
+        <article class="card">
+          <h2>Demo Data</h2>
+          <p>Expanded seeded catalogue and commerce data for realistic testing of browsing and interaction behavior.</p>
+        </article>
+      </section>
+
+      <p class="foot">GitHub Pages is published from the docs directory via workflow automation.</p>
+    </main>
+  </body>
+</html>

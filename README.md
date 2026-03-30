@@ -5,6 +5,8 @@
 
 > **👉 [View Project Portfolio & Demo](PORTFOLIO.md)** — Comprehensive showcase of features, architecture, and technical implementation without source code exposure.
 
+> **🌐 GitHub Page:** https://gitmanfel.github.io/art-museum/
+
 ## Demo day quick commands
 
 - From repo root, run seeded-data validation:
@@ -23,6 +25,8 @@
 - Start frontend web from root:
 	- `npm run start:frontend:web`
 	- Uses fixed port `8096` for stable demo startup.
+- GitHub Page publication:
+	- Pushed updates to `docs/` auto-deploy via `.github/workflows/pages.yml`.
 
 ## Environment variables
 
