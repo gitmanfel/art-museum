@@ -2,11 +2,8 @@ const bcrypt = require('bcrypt');
 const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
 const { buildResetLink, sendResetPasswordEmail, isSmtpConfigured } = require('../services/resetEmail');
-
-// IN-MEMORY USER STORE (MOCK DATABASE)
-// Replace this with PostgreSQL or MongoDB in a real application
-const usersDB = []; 
-const passwordResetTokensDB = [];
+const userRepo = require('../db/userRepository');
+const resetTokenRepo = require('../db/resetTokenRepository');
 
 const SALT_ROUNDS = 10;
 const JWT_SECRET = process.env.JWT_SECRET || 'fallback_secret';
@@ -30,15 +27,6 @@ const resolveUserRole = (email) => {
 
 const hashToken = (token) => crypto.createHash('sha256').update(token).digest('hex');
 
-const removeExpiredResetTokens = () => {
-  const now = Date.now();
-  for (let i = passwordResetTokensDB.length - 1; i >= 0; i -= 1) {
-    const record = passwordResetTokensDB[i];
-    if (record.expiresAt <= now || record.usedAt) {
-      passwordResetTokensDB.splice(i, 1);
-    }
-  }
-};
 
 const isStrongPassword = (password) => {
   // Minimum 10 chars, at least one lowercase, uppercase, number, and special char.
@@ -65,7 +53,7 @@ exports.register = async (req, res) => {
     }
 
     // 2. Check if user exists
-    const userExists = usersDB.find(u => u.email === email);
+    const userExists = userRepo.findByEmail(email);
     if (userExists) {
       return res.status(409).json({ error: 'User already exists' });
     }
@@ -73,14 +61,13 @@ exports.register = async (req, res) => {
     // 3. Hash the password securely
     const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
 
-    // 4. Save to Database
-    const newUser = {
-      id: Date.now().toString(), // Mock ID
-      email: email,
+    // 4. Persist to database
+    const newUser = userRepo.create({
+      id: crypto.randomUUID(),
+      email,
       role: resolveUserRole(email),
-      password: hashedPassword // Store only the hash, NEVER plain text
-    };
-    usersDB.push(newUser);
+      password: hashedPassword,
+    });
 
     // 5. Generate Initial Token (Optional on registration)
     const token = jwt.sign(
@@ -114,7 +101,7 @@ exports.login = async (req, res) => {
     }
 
     // 2. Find user
-    const user = usersDB.find(u => u.email === email);
+    const user = userRepo.findByEmail(email);
     if (!user) {
         // Return generic message to prevent username enumeration
       return res.status(401).json({ error: 'Invalid credentials' });
@@ -169,9 +156,9 @@ exports.forgotPassword = async (req, res) => {
     return res.status(400).json({ error: 'Email is required' });
   }
 
-  removeExpiredResetTokens();
+  resetTokenRepo.removeExpired();
 
-  const user = usersDB.find(u => u.email === email);
+  const user = userRepo.findByEmail(email);
   let resetToken;
   let resetLink;
 
@@ -182,18 +169,9 @@ exports.forgotPassword = async (req, res) => {
     resetLink = buildResetLink({ token: resetToken, email: user.email });
 
     // Invalidate older active tokens for this user to keep a single valid token.
-    for (let i = passwordResetTokensDB.length - 1; i >= 0; i -= 1) {
-      if (passwordResetTokensDB[i].userId === user.id) {
-        passwordResetTokensDB.splice(i, 1);
-      }
-    }
+    resetTokenRepo.invalidateForUser(user.id);
 
-    passwordResetTokensDB.push({
-      userId: user.id,
-      tokenHash,
-      expiresAt,
-      usedAt: null,
-    });
+    resetTokenRepo.create({ userId: user.id, tokenHash, expiresAt });
 
     await sendResetPasswordEmail({
       email: user.email,
@@ -231,31 +209,25 @@ exports.resetPassword = async (req, res) => {
     });
   }
 
-  removeExpiredResetTokens();
+  resetTokenRepo.removeExpired();
 
   const tokenHash = hashToken(token);
-  const tokenRecord = passwordResetTokensDB.find(
-    record => record.tokenHash === tokenHash && record.expiresAt > Date.now() && !record.usedAt
-  );
+  const tokenRecord = resetTokenRepo.findValid(tokenHash);
 
   if (!tokenRecord) {
     return res.status(400).json({ error: 'Invalid or expired reset token' });
   }
 
-  const user = usersDB.find(u => u.id === tokenRecord.userId);
+  const user = userRepo.findById(tokenRecord.user_id);
   if (!user) {
     return res.status(400).json({ error: 'Invalid or expired reset token' });
   }
 
-  user.password = await bcrypt.hash(newPassword, SALT_ROUNDS);
-  tokenRecord.usedAt = Date.now();
+  await userRepo.updatePassword(user.id, await bcrypt.hash(newPassword, SALT_ROUNDS));
+  resetTokenRepo.markUsed(tokenHash);
 
   // Invalidate all remaining reset tokens for this user after successful reset.
-  for (let i = passwordResetTokensDB.length - 1; i >= 0; i -= 1) {
-    if (passwordResetTokensDB[i].userId === user.id) {
-      passwordResetTokensDB.splice(i, 1);
-    }
-  }
+  resetTokenRepo.invalidateForUser(user.id);
 
   return res.status(200).json({ message: 'Password reset successful' });
 };

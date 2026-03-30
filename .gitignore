@@ -12,6 +12,9 @@ audit.json
 audit-backend.json
 audit-frontend.json
 
+# SQLite runtime database
+backend/data/
+
 # Editor / OS
 *.swp
 Thumbs.db

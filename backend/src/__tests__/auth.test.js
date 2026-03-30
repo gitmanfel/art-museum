@@ -1,8 +1,13 @@
 const request = require('supertest');
 const app = require('../app');
+const { closeDb } = require('../db/database');
 
 describe('Authentication Endpoints', () => {
   process.env.ADMIN_EMAILS = 'testuser@example.com';
+
+  // Ensure a fresh in-memory SQLite DB before and after this suite.
+  beforeAll(() => closeDb());
+  afterAll(() => closeDb());
 
   const testUser = {
     email: 'testuser@example.com',
