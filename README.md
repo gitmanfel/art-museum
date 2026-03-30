@@ -1,5 +1,8 @@
 # art-museum
 
+[![CI](https://github.com/gitmanfel/art-museum/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/gitmanfel/art-museum/actions/workflows/ci.yml)
+[![Security](https://github.com/gitmanfel/art-museum/actions/workflows/security.yml/badge.svg?branch=main)](https://github.com/gitmanfel/art-museum/actions/workflows/security.yml)
+
 > **👉 [View Project Portfolio & Demo](PORTFOLIO.md)** — Comprehensive showcase of features, architecture, and technical implementation without source code exposure.
 
 ## Demo day quick commands
