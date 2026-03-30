@@ -65,6 +65,12 @@ exports.updateCollection = (req, res) => {
   return res.status(200).json({ collection });
 };
 
+exports.deleteCollection = (req, res) => {
+  const deleted = catalogueRepo.deleteCollection(req.params.id);
+  if (!deleted) return res.status(404).json({ error: 'Collection not found' });
+  return res.status(200).json({ deleted: true });
+};
+
 exports.createExhibition = (req, res) => {
   const { name, artist, description, start_date, end_date, location_floor, image_url } = req.body;
   if (!name) return res.status(400).json({ error: 'name is required' });
@@ -99,4 +105,10 @@ exports.updateExhibition = (req, res) => {
   });
 
   return res.status(200).json({ exhibition });
+};
+
+exports.deleteExhibition = (req, res) => {
+  const deleted = catalogueRepo.deleteExhibition(req.params.id);
+  if (!deleted) return res.status(404).json({ error: 'Exhibition not found' });
+  return res.status(200).json({ deleted: true });
 };

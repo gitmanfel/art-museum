@@ -149,6 +149,14 @@ const updateExhibition = (id, fields) => {
   return getExhibitionById(id);
 };
 
+const deleteExhibition = (id) => {
+  const db = getDb();
+  const existing = db.prepare('SELECT id FROM exhibitions WHERE id = ?').get(id);
+  if (!existing) return false;
+  db.prepare('DELETE FROM exhibitions WHERE id = ?').run(id);
+  return true;
+};
+
 // ---------- Collections ----------
 
 /**
@@ -233,6 +241,14 @@ const updateCollection = (id, fields) => {
   return getCollectionById(id);
 };
 
+const deleteCollection = (id) => {
+  const db = getDb();
+  const existing = db.prepare('SELECT id FROM collections WHERE id = ?').get(id);
+  if (!existing) return false;
+  db.prepare('DELETE FROM collections WHERE id = ?').run(id);
+  return true;
+};
+
 module.exports = {
   getAllTicketTypes,
   getTicketTypeById,
@@ -247,8 +263,10 @@ module.exports = {
   getExhibitionById,
   createExhibition,
   updateExhibition,
+  deleteExhibition,
   getCollections,
   getCollectionById,
   createCollection,
   updateCollection,
+  deleteCollection,
 };

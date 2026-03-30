@@ -11,6 +11,8 @@ describe('Admin Endpoints', () => {
 
   let userToken;
   let adminToken;
+  let createdCollectionId;
+  let createdExhibitionId;
 
   beforeAll(async () => {
     await request(app)
@@ -90,6 +92,7 @@ describe('Admin Endpoints', () => {
 
     expect(res.body.collection).toHaveProperty('id');
     expect(res.body.collection).toHaveProperty('name', 'Modern Installations');
+    createdCollectionId = res.body.collection.id;
   });
 
   it('creates an exhibition as admin', async () => {
@@ -101,5 +104,40 @@ describe('Admin Endpoints', () => {
 
     expect(res.body.exhibition).toHaveProperty('id');
     expect(res.body.exhibition).toHaveProperty('name', 'New Futures');
+    createdExhibitionId = res.body.exhibition.id;
+  });
+
+  it('updates a collection as admin', async () => {
+    const res = await request(app)
+      .patch(`/api/admin/collections/${createdCollectionId}`)
+      .set('Authorization', `Bearer ${adminToken}`)
+      .send({ name: 'Modern Installations Updated' })
+      .expect(200);
+
+    expect(res.body.collection).toHaveProperty('name', 'Modern Installations Updated');
+  });
+
+  it('updates an exhibition as admin', async () => {
+    const res = await request(app)
+      .patch(`/api/admin/exhibitions/${createdExhibitionId}`)
+      .set('Authorization', `Bearer ${adminToken}`)
+      .send({ artist: 'Various Artists' })
+      .expect(200);
+
+    expect(res.body.exhibition).toHaveProperty('artist', 'Various Artists');
+  });
+
+  it('deletes a collection as admin', async () => {
+    await request(app)
+      .delete(`/api/admin/collections/${createdCollectionId}`)
+      .set('Authorization', `Bearer ${adminToken}`)
+      .expect(200);
+  });
+
+  it('deletes an exhibition as admin', async () => {
+    await request(app)
+      .delete(`/api/admin/exhibitions/${createdExhibitionId}`)
+      .set('Authorization', `Bearer ${adminToken}`)
+      .expect(200);
   });
 });

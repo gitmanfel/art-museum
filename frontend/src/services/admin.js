@@ -38,8 +38,32 @@ export const createAdminCollection = async (payload) => {
   return data.collection;
 };
 
+export const updateAdminCollection = async (id, payload) => {
+  const api = await getAdminApi();
+  const { data } = await api.patch(`/collections/${id}`, payload);
+  return data.collection;
+};
+
+export const deleteAdminCollection = async (id) => {
+  const api = await getAdminApi();
+  const { data } = await api.delete(`/collections/${id}`);
+  return data;
+};
+
 export const createAdminExhibition = async (payload) => {
   const api = await getAdminApi();
   const { data } = await api.post('/exhibitions', payload);
   return data.exhibition;
+};
+
+export const updateAdminExhibition = async (id, payload) => {
+  const api = await getAdminApi();
+  const { data } = await api.patch(`/exhibitions/${id}`, payload);
+  return data.exhibition;
+};
+
+export const deleteAdminExhibition = async (id) => {
+  const api = await getAdminApi();
+  const { data } = await api.delete(`/exhibitions/${id}`);
+  return data;
 };

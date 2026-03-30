@@ -13,7 +13,9 @@ router.get('/orders', adminCtrl.getOrders);
 router.get('/users', adminCtrl.getUsers);
 router.post('/collections', adminCtrl.createCollection);
 router.patch('/collections/:id', adminCtrl.updateCollection);
+router.delete('/collections/:id', adminCtrl.deleteCollection);
 router.post('/exhibitions', adminCtrl.createExhibition);
 router.patch('/exhibitions/:id', adminCtrl.updateExhibition);
+router.delete('/exhibitions/:id', adminCtrl.deleteExhibition);
 
 module.exports = router;

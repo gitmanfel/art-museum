@@ -9,15 +9,26 @@ import {
   View,
 } from 'react-native';
 import { getCollections, getExhibitions } from '../services/catalogue';
-import { createAdminCollection, createAdminExhibition } from '../services/admin';
+import {
+  createAdminCollection,
+  createAdminExhibition,
+  updateAdminCollection,
+  updateAdminExhibition,
+  deleteAdminCollection,
+  deleteAdminExhibition,
+} from '../services/admin';
 
 const ContentManagementScreen = () => {
   const [collections, setCollections] = useState([]);
   const [exhibitions, setExhibitions] = useState([]);
+
   const [collectionName, setCollectionName] = useState('');
   const [collectionCategory, setCollectionCategory] = useState('');
+  const [editingCollectionId, setEditingCollectionId] = useState(null);
+
   const [exhibitionName, setExhibitionName] = useState('');
   const [exhibitionArtist, setExhibitionArtist] = useState('');
+  const [editingExhibitionId, setEditingExhibitionId] = useState(null);
 
   const loadData = useCallback(async () => {
     const [collectionsData, exhibitionsData] = await Promise.all([
@@ -34,44 +45,110 @@ const ContentManagementScreen = () => {
     });
   }, [loadData]);
 
-  const createCollection = async () => {
+  const resetCollectionForm = () => {
+    setEditingCollectionId(null);
+    setCollectionName('');
+    setCollectionCategory('');
+  };
+
+  const resetExhibitionForm = () => {
+    setEditingExhibitionId(null);
+    setExhibitionName('');
+    setExhibitionArtist('');
+  };
+
+  const saveCollection = async () => {
     if (!collectionName.trim()) {
       Alert.alert('Missing name', 'Collection name is required.');
       return;
     }
 
     try {
-      await createAdminCollection({
-        name: collectionName.trim(),
-        category: collectionCategory.trim() || null,
-      });
-      setCollectionName('');
-      setCollectionCategory('');
+      if (editingCollectionId) {
+        await updateAdminCollection(editingCollectionId, {
+          name: collectionName.trim(),
+          category: collectionCategory.trim() || null,
+        });
+        Alert.alert('Updated', 'Collection updated successfully.');
+      } else {
+        await createAdminCollection({
+          name: collectionName.trim(),
+          category: collectionCategory.trim() || null,
+        });
+        Alert.alert('Created', 'Collection created successfully.');
+      }
+
+      resetCollectionForm();
       await loadData();
-      Alert.alert('Created', 'Collection created successfully.');
     } catch (e) {
-      Alert.alert('Create failed', e.response?.data?.error || 'Could not create collection.');
+      Alert.alert('Save failed', e.response?.data?.error || 'Could not save collection.');
     }
   };
 
-  const createExhibition = async () => {
+  const saveExhibition = async () => {
     if (!exhibitionName.trim()) {
       Alert.alert('Missing name', 'Exhibition name is required.');
       return;
     }
 
     try {
-      await createAdminExhibition({
-        name: exhibitionName.trim(),
-        artist: exhibitionArtist.trim() || null,
-      });
-      setExhibitionName('');
-      setExhibitionArtist('');
+      if (editingExhibitionId) {
+        await updateAdminExhibition(editingExhibitionId, {
+          name: exhibitionName.trim(),
+          artist: exhibitionArtist.trim() || null,
+        });
+        Alert.alert('Updated', 'Exhibition updated successfully.');
+      } else {
+        await createAdminExhibition({
+          name: exhibitionName.trim(),
+          artist: exhibitionArtist.trim() || null,
+        });
+        Alert.alert('Created', 'Exhibition created successfully.');
+      }
+
+      resetExhibitionForm();
       await loadData();
-      Alert.alert('Created', 'Exhibition created successfully.');
     } catch (e) {
-      Alert.alert('Create failed', e.response?.data?.error || 'Could not create exhibition.');
+      Alert.alert('Save failed', e.response?.data?.error || 'Could not save exhibition.');
     }
+  };
+
+  const removeCollection = (id) => {
+    Alert.alert('Delete collection?', 'This action cannot be undone.', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Delete',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await deleteAdminCollection(id);
+            if (editingCollectionId === id) resetCollectionForm();
+            await loadData();
+          } catch (e) {
+            Alert.alert('Delete failed', e.response?.data?.error || 'Could not delete collection.');
+          }
+        },
+      },
+    ]);
+  };
+
+  const removeExhibition = (id) => {
+    Alert.alert('Delete exhibition?', 'This action cannot be undone.', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Delete',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await deleteAdminExhibition(id);
+            if (editingExhibitionId === id) resetExhibitionForm();
+            await loadData();
+          } catch (e) {
+            Alert.alert('Delete failed', e.response?.data?.error || 'Could not delete exhibition.');
+          }
+        },
+      },
+    ]);
   };
 
   return (
@@ -79,7 +156,7 @@ const ContentManagementScreen = () => {
       <Text style={styles.heading}>Content Manager</Text>
 
       <View style={styles.card}>
-        <Text style={styles.cardTitle}>Create Collection</Text>
+        <Text style={styles.cardTitle}>{editingCollectionId ? 'Edit Collection' : 'Create Collection'}</Text>
         <TextInput
           style={styles.input}
           value={collectionName}
@@ -94,13 +171,18 @@ const ContentManagementScreen = () => {
           placeholder="Category (optional)"
           placeholderTextColor="#9b9b9b"
         />
-        <TouchableOpacity style={styles.button} onPress={createCollection}>
-          <Text style={styles.buttonText}>Add Collection</Text>
+        <TouchableOpacity style={styles.button} onPress={saveCollection}>
+          <Text style={styles.buttonText}>{editingCollectionId ? 'Save Collection' : 'Add Collection'}</Text>
         </TouchableOpacity>
+        {editingCollectionId ? (
+          <TouchableOpacity style={[styles.button, styles.secondaryButton]} onPress={resetCollectionForm}>
+            <Text style={[styles.buttonText, styles.secondaryButtonText]}>Cancel Edit</Text>
+          </TouchableOpacity>
+        ) : null}
       </View>
 
       <View style={styles.card}>
-        <Text style={styles.cardTitle}>Create Exhibition</Text>
+        <Text style={styles.cardTitle}>{editingExhibitionId ? 'Edit Exhibition' : 'Create Exhibition'}</Text>
         <TextInput
           style={styles.input}
           value={exhibitionName}
@@ -115,22 +197,67 @@ const ContentManagementScreen = () => {
           placeholder="Artist (optional)"
           placeholderTextColor="#9b9b9b"
         />
-        <TouchableOpacity style={styles.button} onPress={createExhibition}>
-          <Text style={styles.buttonText}>Add Exhibition</Text>
+        <TouchableOpacity style={styles.button} onPress={saveExhibition}>
+          <Text style={styles.buttonText}>{editingExhibitionId ? 'Save Exhibition' : 'Add Exhibition'}</Text>
         </TouchableOpacity>
+        {editingExhibitionId ? (
+          <TouchableOpacity style={[styles.button, styles.secondaryButton]} onPress={resetExhibitionForm}>
+            <Text style={[styles.buttonText, styles.secondaryButtonText]}>Cancel Edit</Text>
+          </TouchableOpacity>
+        ) : null}
       </View>
 
       <View style={styles.card}>
         <Text style={styles.cardTitle}>Collections ({collections.length})</Text>
         {collections.slice(0, 8).map((item) => (
-          <Text key={item.id} style={styles.listItem}>{item.name}</Text>
+          <View key={item.id} style={styles.rowItem}>
+            <Text style={styles.listItem}>{item.name}</Text>
+            <View style={styles.actionsRow}>
+              <TouchableOpacity
+                style={styles.actionBtn}
+                onPress={() => {
+                  setEditingCollectionId(item.id);
+                  setCollectionName(item.name || '');
+                  setCollectionCategory(item.category || '');
+                }}
+              >
+                <Text style={styles.actionText}>Edit</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.actionBtn, styles.deleteBtn]}
+                onPress={() => removeCollection(item.id)}
+              >
+                <Text style={[styles.actionText, styles.deleteText]}>Delete</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
         ))}
       </View>
 
       <View style={styles.card}>
         <Text style={styles.cardTitle}>Exhibitions ({exhibitions.length})</Text>
         {exhibitions.slice(0, 8).map((item) => (
-          <Text key={item.id} style={styles.listItem}>{item.name}</Text>
+          <View key={item.id} style={styles.rowItem}>
+            <Text style={styles.listItem}>{item.name}</Text>
+            <View style={styles.actionsRow}>
+              <TouchableOpacity
+                style={styles.actionBtn}
+                onPress={() => {
+                  setEditingExhibitionId(item.id);
+                  setExhibitionName(item.name || '');
+                  setExhibitionArtist(item.artist || '');
+                }}
+              >
+                <Text style={styles.actionText}>Edit</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.actionBtn, styles.deleteBtn]}
+                onPress={() => removeExhibition(item.id)}
+              >
+                <Text style={[styles.actionText, styles.deleteText]}>Delete</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
         ))}
       </View>
     </ScrollView>
@@ -180,14 +307,50 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 4,
   },
+  secondaryButton: {
+    backgroundColor: '#f3f3f3',
+    marginTop: 8,
+  },
   buttonText: {
     color: '#fff',
     fontWeight: '700',
   },
+  secondaryButtonText: {
+    color: '#333',
+  },
+  rowItem: {
+    borderWidth: 1,
+    borderColor: '#f0f0f0',
+    borderRadius: 8,
+    padding: 10,
+    marginBottom: 8,
+  },
   listItem: {
     fontSize: 13,
     color: '#333',
-    marginBottom: 6,
+    marginBottom: 8,
+  },
+  actionsRow: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  actionBtn: {
+    borderWidth: 1,
+    borderColor: '#d9d9d9',
+    borderRadius: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+  },
+  actionText: {
+    color: '#333',
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  deleteBtn: {
+    borderColor: '#ffb8b8',
+  },
+  deleteText: {
+    color: '#b43030',
   },
 });
 
