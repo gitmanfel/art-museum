@@ -40,4 +40,14 @@ const updatePassword = (id, hashedPassword) => {
   return findById(id);
 };
 
-module.exports = { findByEmail, findById, create, updatePassword };
+/**
+ * Update role for a user. Returns updated user row.
+ */
+const updateRole = (id, role) => {
+  getDb()
+    .prepare('UPDATE users SET role = ? WHERE id = ?')
+    .run(role, id);
+  return findById(id);
+};
+
+module.exports = { findByEmail, findById, create, updatePassword, updateRole };

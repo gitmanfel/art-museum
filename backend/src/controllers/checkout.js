@@ -2,6 +2,7 @@
 
 const cartRepo = require('../db/cartRepository');
 const orderRepo = require('../db/orderRepository');
+const userRepo = require('../db/userRepository');
 const { createPaymentIntent, constructWebhookEvent, PROVIDER_STRIPE, PROVIDER_MOCK } = require('../services/paymentProvider');
 
 const calcCartTotal = (items) =>
@@ -21,6 +22,7 @@ exports.createCheckoutIntent = async (req, res) => {
   const total = calcCartTotal(items);
   const amountCents = Math.round(total * 100);
   const currency = 'usd';
+  const hasMembership = items.some(i => i.item_type === 'membership');
 
   try {
     const intent = await createPaymentIntent({
@@ -31,6 +33,7 @@ exports.createCheckoutIntent = async (req, res) => {
         userId: req.user.userId,
         email: req.user.email,
         itemCount: String(items.length),
+        hasMembership: hasMembership ? '1' : '0',
       },
     });
 
@@ -91,6 +94,13 @@ exports.handleWebhook = (req, res) => {
     currency: intent.currency || 'usd',
     provider: signature ? PROVIDER_STRIPE : PROVIDER_MOCK,
   });
+
+  if (intent?.metadata?.hasMembership === '1') {
+    const user = userRepo.findById(userId);
+    if (user && user.role === 'user') {
+      userRepo.updateRole(userId, 'member');
+    }
+  }
 
   // Cart is only cleared after confirmed payment success.
   cartRepo.clearCart(userId);

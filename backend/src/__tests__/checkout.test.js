@@ -152,4 +152,50 @@ describe('Checkout Endpoints', () => {
 
     expect(rows).toHaveLength(1);
   });
+
+  it('upgrades user to member after paid membership and applies member pricing', async () => {
+    const user = getDb().prepare('SELECT id FROM users WHERE email = ?').get('checkout@example.com');
+
+    await request(app)
+      .post('/api/cart')
+      .set(auth())
+      .send({ itemType: 'membership', itemId: 'membership-individual', quantity: 1 })
+      .expect(200);
+
+    const payload = {
+      id: 'evt_mock_member_1',
+      type: 'payment_intent.succeeded',
+      data: {
+        object: {
+          id: 'pi_mock_member_1',
+          amount: 7500,
+          amount_received: 7500,
+          currency: 'usd',
+          metadata: {
+            userId: user.id,
+            hasMembership: '1',
+          },
+        },
+      },
+    };
+
+    await request(app)
+      .post('/api/checkout/webhook')
+      .set('Content-Type', 'application/json')
+      .send(payload)
+      .expect(200);
+
+    const upgraded = getDb().prepare('SELECT role FROM users WHERE id = ?').get(user.id);
+    expect(upgraded.role).toBe('member');
+
+    // Reuse existing token; middleware should read DB role and apply member price.
+    const addRes = await request(app)
+      .post('/api/cart')
+      .set(auth())
+      .send({ itemType: 'product', itemId: 'product-braun-watch', quantity: 1 })
+      .expect(200);
+
+    const watch = addRes.body.items.find(i => i.item_id === 'product-braun-watch');
+    expect(watch.unit_price).toBe(140);
+  });
 });

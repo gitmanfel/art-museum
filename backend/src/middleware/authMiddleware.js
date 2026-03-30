@@ -1,4 +1,5 @@
 const jwt = require('jsonwebtoken');
+const userRepo = require('../db/userRepository');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'fallback_secret';
 
@@ -16,10 +17,15 @@ const requireAuth = (req, res, next) => {
 		const token = authHeader.split(' ')[1];
 		const payload = jwt.verify(token, JWT_SECRET);
 
+		const dbUser = userRepo.findById(payload.userId);
+		if (!dbUser) {
+			return res.status(401).json({ error: 'Invalid or expired token' });
+		}
+
 		req.user = {
-			userId: payload.userId,
-			email: payload.email,
-			role: payload.role || 'user',
+			userId: dbUser.id,
+			email: dbUser.email,
+			role: dbUser.role || payload.role || 'user',
 		};
 
 		return next();
