@@ -341,6 +341,15 @@ h1 {
   background: rgba(255, 255, 255, 0.025);
 }
 
+.system-tier-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
 .system-tier::before {
   content: "";
   position: absolute;
@@ -356,7 +365,6 @@ h1 {
 
 .system-tier-label {
   display: inline-block;
-  margin-bottom: 12px;
   padding: 5px 10px;
   border-radius: 999px;
   border: 1px solid rgba(255, 255, 255, 0.12);
@@ -365,6 +373,19 @@ h1 {
   font-size: 0.72rem;
   letter-spacing: 0.14em;
   text-transform: uppercase;
+}
+
+.system-boundary {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 10px;
+  border-radius: 999px;
+  border: 1px dashed rgba(255, 255, 255, 0.16);
+  color: rgba(232, 237, 245, 0.82);
+  font-size: 0.73rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  background: rgba(255, 255, 255, 0.03);
 }
 
 .system-row {
@@ -438,6 +459,15 @@ h1 {
   font-size: 0.76rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
+}
+
+.system-flow strong {
+  color: var(--text);
+  font-weight: 700;
+}
+
+.system-flow span {
+  color: var(--accent-2);
 }
 
 .system-footer {
@@ -535,6 +565,10 @@ h1 {
 
   .system-meta {
     gap: 8px;
+  }
+
+  .system-tier-head {
+    align-items: flex-start;
   }
 }
 

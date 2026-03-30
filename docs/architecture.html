@@ -48,7 +48,10 @@
           <span class="system-legend-item"><span class="system-legend-dot integration"></span>External and delivery</span>
         </div>
         <section class="system-tier">
-          <span class="system-tier-label">Experience Layer</span>
+          <div class="system-tier-head">
+            <span class="system-tier-label">Experience Layer</span>
+            <span class="system-boundary">Public Client Boundary</span>
+          </div>
           <div class="system-row">
             <article class="system-box client">
               <h3>Visitor Experience</h3>
@@ -65,10 +68,13 @@
           </div>
         </section>
 
-        <div class="system-flow">HTTP requests | JWT auth | role-aware navigation</div>
+        <div class="system-flow"><strong>Flow:</strong> <span>HTTP requests | JWT auth | role-aware navigation</span></div>
 
         <section class="system-tier">
-          <span class="system-tier-label">Application Layer</span>
+          <div class="system-tier-head">
+            <span class="system-tier-label">Application Layer</span>
+            <span class="system-boundary">Trusted Service Boundary</span>
+          </div>
           <div class="system-row">
             <article class="system-box application">
               <h3>Route and Controller Layer</h3>
@@ -89,10 +95,13 @@
           </div>
         </section>
 
-        <div class="system-flow">Repository calls | payment provider | email delivery | diagnostics</div>
+        <div class="system-flow"><strong>Flow:</strong> <span>Repository calls | payment provider | email delivery | diagnostics</span></div>
 
         <section class="system-tier">
-          <span class="system-tier-label">Data and Integration Layer</span>
+          <div class="system-tier-head">
+            <span class="system-tier-label">Data and Integration Layer</span>
+            <span class="system-boundary">Persistence and Delivery Boundary</span>
+          </div>
           <div class="system-row">
             <article class="system-box data">
               <h3>SQLite Core Data</h3>
