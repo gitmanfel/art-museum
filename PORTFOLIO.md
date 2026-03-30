@@ -13,7 +13,7 @@
 - 👥 **Membership System** — Tiered memberships with automated renewal and benefit tracking
 - 🛍️ **Gift Shop** — E-commerce integration with 25+ curated products across categories
 - 📚 **Exhibition Management** — 25+ exhibitions with artwork galleries and curator notes
-- 💬 **Communication Hub** — Contact forms, email integration, and newsletter subscriptions (1000+ subscribers)
+- 💬 **Communication Hub** — Contact forms, email integration, and newsletter subscriptions
 - 🔐 **Admin Dashboard** — Role-based access with audit logging for all administrative actions
 - 📱 **Cross-Platform UI** — React Native app running on iOS, Android, and Web
 
@@ -27,7 +27,7 @@
 | **Backend Endpoints** | 25+ RESTful APIs | ✅ All tested |
 | **Database Tables** | 14+ normalized tables | ✅ Production schema |
 | **Authentication** | JWT + bcrypt | ✅ Secure |
-| **Concurrent Users** | Stress tested | ✅ Stable |
+| **Catalogue Seed Data** | 20+ items per main category | ✅ Ready for demos |
 | **Transactions** | Full ACID compliance | ✅ SQLite WAL mode |
 | **Code Quality** | ESLint + Prettier | ✅ Consistent |
 
@@ -61,7 +61,7 @@
 - **Collections** — Curated groupings with historical context
 - **Orders** — E-commerce transactions with full history
 - **Cart Items** — Session-based shopping cart
-- **Contact Messages** — CRM integration with 2,000+ messages
+- **Contact Messages** — CRM integration with seeded demo messages
 - **Newsletter Subscribers** — Marketing analytics
 - **Admin Audit Logs** — Compliance and security tracking
 - **Password Reset Tokens** — Secure credential recovery
@@ -137,8 +137,8 @@
 - Historical transaction tracking
 
 ### **Community Features**
-- Contact form with 2,000+ messages
-- Newsletter subscription with 1,000+ subscribers
+- Contact form with seeded demo messages
+- Newsletter subscription with seeded demo subscribers
 - Email notifications for important events
 - Feedback collection system
 
@@ -153,15 +153,14 @@
 
 ## 🚀 Performance Characteristics
 
-| Operation | Avg Time | Test Volume |
-|-----------|----------|-------------|
-| User Login | 113ms | ✅ Tested |
-| Product Listing | 15ms | ✅ 25+ items |
-| Search (Full-Text) | 8ms | ✅ Optimized |
-| Checkout Flow | 330ms | ✅ Stress tested |
-| Report Generation | <1s | ✅ Large datasets |
+| Operation | Result | Validation |
+|-----------|--------|------------|
+| Authentication flow | Functional | ✅ Automated tests |
+| Catalogue listing | Functional | ✅ 25 exhibitions / 28 products / 25 collections |
+| Checkout flow | Functional | ✅ Automated tests |
+| Admin endpoints | Functional | ✅ Automated tests |
 
-**Database**: SQLite with WAL mode provides excellent single-instance concurrency and can handle thousands of concurrent reads.
+**Database**: SQLite with WAL mode for reliable local development and transactional integrity.
 
 ---
 
@@ -184,40 +183,12 @@ Includes:
 
 ### Test Coverage Summary
 ```
-✅ Smoke Tests (10 tests)
-   └─ All critical paths verified
+✅ Backend test suites: 10 passed
+✅ Backend tests: 103 passed
+✅ Frontend test suites: 6 passed
+✅ Frontend tests: 20 passed
 
-✅ Authentication Tests (8 tests)
-   └─ Login, registration, password reset, JWT validation
-
-✅ Cart System Tests (6 tests)
-   └─ Add/remove items, quantities, edge cases
-
-✅ E-Commerce Tests (7 tests)
-   └─ Product catalog, orders, checkout flow
-
-✅ Admin panel Tests (9 tests)
-   └─ Role-based access, audit logging, data modifications
-
-✅ Contact & Email (6 tests)
-   └─ Message handling, newsletter, email delivery
-
-✅ Catalog Search (6 tests)
-   └─ Exhibitions, products, collections, filtering
-
-✅ Checkout Process (8 tests)
-   └─ Payment flow, inventory management, order creation
-
-✅ Password Recovery (9 tests)
-   └─ Token generation, validation, security
-
-✅ Startup Verification (8 tests)
-   └─ Config checks, database health, security validation
-
-✅ Config Validation (6 tests)
-   └─ Environment variables, required settings
-
-Total: **103 tests across 10 suites — All passing**
+Total: **123 tests across backend and frontend — All passing**
 ```
 
 ### Continuous Quality
@@ -361,12 +332,12 @@ This project demonstrates:
 ---
 
 ### Project Stats
-- **Lines of Code**: 15,000+ (backend + frontend)
-- **Commits**: 50+ with meaningful messages
-- **Test Coverage**: 103 tests across 10 suites
+- **Seed Data**: 25 ticket types, 28 products, 25 exhibitions, 25 collections, 33 artworks
+- **Recent Communication Seed Data**: 22 contact messages, 22 newsletter subscribers
+- **Test Coverage**: 123 tests across backend and frontend suites
 - **Database Tables**: 14+ normalized tables
 - **API Endpoints**: 25+ RESTful routes
-- **Development Time**: Full-featured MVP
+- **Architecture**: Monorepo with React Native frontend and Express + SQLite backend
 
 ---
 

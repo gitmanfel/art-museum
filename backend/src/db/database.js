@@ -1105,37 +1105,39 @@ const seedCatalogue = (db) => {
 
 const seedCommunications = (db) => {
   const messageCount = db.prepare('SELECT COUNT(*) as count FROM contact_messages').get().count;
-  if (messageCount === 0) {
+  const seedMessages = [
+    ['Amina Diallo', 'amina@example.com', 'School Visit Booking', 'We would like to book a school group tour for next month.'],
+    ['Liam Chen', 'liam@example.com', 'Membership Renewal', 'My membership renewal payment failed. Can you assist?'],
+    ['Sofia Rossi', 'sofia@example.com', 'Accessible Entrance', 'Is the north entrance wheelchair accessible?'],
+    ['Noah Patel', 'noah@example.com', 'Private Event Request', 'I am interested in hosting a private reception at the museum.'],
+    ['Emma Johnson', 'emma@example.com', 'Lost Item', 'I may have left my sketchbook in gallery 3 yesterday.'],
+    ['Youssef Karim', 'youssef@example.com', 'Photography Policy', 'Can I take photos in the temporary exhibition rooms?'],
+    ['Maya Thompson', 'maya@example.com', 'Guided Tour Language', 'Do you offer guided tours in French or Arabic?'],
+    ['Oliver Brown', 'oliver@example.com', 'Group Discount', 'Is there a corporate group rate for 20 visitors?'],
+    ['Zara Ahmed', 'zara@example.com', 'Ticket Refund', 'Can I change my ticket date if I cannot attend?'],
+    ['Hugo Martin', 'hugo@example.com', 'Volunteer Program', 'I am interested in volunteering as a weekend guide.'],
+    ['Lucia Silva', 'lucia@example.com', 'Workshop Inquiry', 'Do you offer artist workshops or masterclasses?'],
+    ['Raja Singh', 'raja@example.com', 'Facility Rental', 'I\'d like to inquire about renting the gallery for an event.'],
+    ['Rosa Garcia', 'rosa@example.com', 'Donation Question', 'How can I donate artwork to the museum collection?'],
+    ['Chen Wei', 'chen@example.com', 'Membership Promotion', 'Are there student membership discounts available?'],
+    ['Priya Kumari', 'priya@example.com', 'Accessibility Needs', 'What accessibility accommodations are available?'],
+    ['Thomas Mueller', 'thomas@example.com', 'Exhibit Feedback', 'I loved the current Impressionist exhibition.'],
+    ['Aisha Williams', 'aisha@example.com', 'Research Access', 'Can I access the archives for my thesis research?'],
+    ['Marco Benelli', 'marco@example.com', 'Summer Camp', 'Is there a summer art camp for teenagers?'],
+    ['Yuki Tanaka', 'yuki@example.com', 'Opening Hours', 'Are you open on holiday Mondays?'],
+    ['Sophie Laurent', 'sophie@example.com', 'Special Exhibitions', 'When will the next major exhibition open?'],
+    ['James O\'Neill', 'james@example.com', 'Virtual Tours', 'Do you offer virtual exhibition tours online?'],
+    ['Fatima Khalid', 'fatima@example.com', 'Program Inquiry', 'Are there evening programs for working adults?'],
+  ];
+  if (messageCount < seedMessages.length) {
     const insertMessage = db.prepare(
       `INSERT INTO contact_messages (name, email, subject, message, created_at)
        VALUES (?, ?, ?, ?, ?)`
     );
-
     const now = Math.floor(Date.now() / 1000);
-    [
-      ['Amina Diallo', 'amina@example.com', 'School Visit Booking', 'We would like to book a school group tour for next month.'],
-      ['Liam Chen', 'liam@example.com', 'Membership Renewal', 'My membership renewal payment failed. Can you assist?'],
-      ['Sofia Rossi', 'sofia@example.com', 'Accessible Entrance', 'Is the north entrance wheelchair accessible?'],
-      ['Noah Patel', 'noah@example.com', 'Private Event Request', 'I am interested in hosting a private reception at the museum.'],
-      ['Emma Johnson', 'emma@example.com', 'Lost Item', 'I may have left my sketchbook in gallery 3 yesterday.'],
-      ['Youssef Karim', 'youssef@example.com', 'Photography Policy', 'Can I take photos in the temporary exhibition rooms?'],
-      ['Maya Thompson', 'maya@example.com', 'Guided Tour Language', 'Do you offer guided tours in French or Arabic?'],
-      ['Oliver Brown', 'oliver@example.com', 'Group Discount', 'Is there a corporate group rate for 20 visitors?'],
-      ['Zara Ahmed', 'zara@example.com', 'Ticket Refund', 'Can I change my ticket date if I cannot attend?'],
-      ['Hugo Martin', 'hugo@example.com', 'Volunteer Program', 'I am interested in volunteering as a weekend guide.'],
-      ['Lucia Silva', 'lucia@example.com', 'Workshop Inquiry', 'Do you offer artist workshops or masterclasses?'],
-      ['Raja Singh', 'raja@example.com', 'Facility Rental', 'I\'d like to inquire about renting the gallery for an event.'],
-      ['Rosa Garcia', 'rosa@example.com', 'Donation Question', 'How can I donate artwork to the museum collection?'],
-      ['Chen Wei', 'chen@example.com', 'Membership Promotion', 'Are there student membership discounts available?'],
-      ['Priya Kumari', 'priya@example.com', 'Accessibility Needs', 'What accessibility accommodations are available?'],
-      ['Thomas Mueller', 'thomas@example.com', 'Exhibit Feedback', 'I loved the current Impressionist exhibition.'],
-      ['Aisha Williams', 'aisha@example.com', 'Research Access', 'Can I access the archives for my thesis research?'],
-      ['Marco Benelli', 'marco@example.com', 'Summer Camp', 'Is there a summer art camp for teenagers?'],
-      ['Yuki Tanaka', 'yuki@example.com', 'Opening Hours', 'Are you open on holiday Mondays?'],
-      ['Sophie Laurent', 'sophie@example.com', 'Special Exhibitions', 'When will the next major exhibition open?'],
-      ['James O\'Neill', 'james@example.com', 'Virtual Tours', 'Do you offer virtual exhibition tours online?'],
-      ['Fatima Khalid', 'fatima@example.com', 'Program Inquiry', 'Are there evening programs for working adults?'],
-    ].forEach((row, index) => insertMessage.run(...row, now - index * 3600));
+    seedMessages.slice(messageCount).forEach((row, index) => {
+      insertMessage.run(...row, now - (messageCount + index) * 3600);
+    });
   }
 
   const subscriberInsert = db.prepare(
