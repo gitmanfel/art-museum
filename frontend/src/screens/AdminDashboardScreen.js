@@ -9,6 +9,7 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  useWindowDimensions,
 } from 'react-native';
 import {
   getAdminAuditLogs,
@@ -22,18 +23,22 @@ import {
 
 const formatCurrency = (cents) => `$${(Number(cents || 0) / 100).toFixed(2)}`;
 
-const StatCard = ({ label, value }) => (
-  <View style={styles.statCard}>
-    <Text style={styles.statLabel}>{label}</Text>
-    <Text style={styles.statValue}>{value}</Text>
+const StatCard = ({ label, value, isCompact }) => (
+  <View style={[styles.statCard, isCompact && styles.statCardCompact]}>
+    <Text style={[styles.statLabel, isCompact && { fontSize: 11 }]}>{label}</Text>
+    <Text style={[styles.statValue, isCompact && { fontSize: 19 }]}>{value}</Text>
   </View>
 );
 
 const AdminDashboardScreen = () => {
+  const { width } = useWindowDimensions();
+  const isCompact = width < 380;
+  const isWide = width >= 1024;
   const [overview, setOverview] = useState(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState('');
+  const [modalError, setModalError] = useState('');
   const [auditLogs, setAuditLogs] = useState([]);
   const [orders, setOrders] = useState([]);
   const [users, setUsers] = useState([]);
@@ -84,23 +89,25 @@ const AdminDashboardScreen = () => {
     setSelectedMessage(message);
     setReplySubject(`Re: ${message.subject}`);
     setReplyBody('');
+    setModalError('');
   };
 
   const closeMessageModal = () => {
     setSelectedMessage(null);
     setReplySubject('');
     setReplyBody('');
+    setModalError('');
   };
 
   const sendReply = async () => {
     if (!selectedMessage) return;
     if (!replySubject.trim() || !replyBody.trim()) {
-      setError('Reply subject and body are required.');
+      setModalError('Reply subject and body are required.');
       return;
     }
 
     setSendingReply(true);
-    setError('');
+    setModalError('');
     try {
       const replyResult = await replyToAdminContactMessage({
         id: selectedMessage.id,
@@ -114,7 +121,7 @@ const AdminDashboardScreen = () => {
       )));
       closeMessageModal();
     } catch (e) {
-      setError(e.response?.data?.error || 'Could not send reply email.');
+      setModalError(e.response?.data?.error || 'Could not send reply email.');
     } finally {
       setSendingReply(false);
     }
@@ -153,29 +160,38 @@ const AdminDashboardScreen = () => {
   return (
     <ScrollView
       style={styles.container}
+      contentContainerStyle={styles.scrollContent}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => loadOverview(true)} />}
     >
-      <Text style={styles.heading}>Admin Dashboard</Text>
+      <View style={[styles.pageContainer, { paddingHorizontal: isCompact ? 14 : 16 }, isWide && styles.pageContainerWide]}>
+      <Text style={[styles.heading, { fontSize: isCompact ? 22 : isWide ? 32 : 26 }]}>Admin Dashboard</Text>
 
       <View style={styles.searchRow}>
         <TextInput
-          style={styles.searchInput}
+          style={[styles.searchInput, { fontSize: isCompact ? 13 : 14 }]}
           value={search}
           onChangeText={setSearch}
           placeholder="Search users, orders, messages"
           placeholderTextColor="#9b9b9b"
+          accessibilityLabel="Search input"
+          accessibilityHint="Search for users, orders, or contact messages"
         />
       </View>
 
-      <View style={styles.statsGrid}>
+      <View style={[styles.statsGrid, { flexDirection: 'row', flexWrap: 'wrap' }]}>
         {metrics.map((metric) => (
-          <StatCard key={metric.label} label={metric.label} value={metric.value} />
+          <View key={metric.label} style={{ width: isCompact ? '100%' : isWide ? '25%' : '50%', paddingRight: isWide ? 16 : isCompact ? 0 : 8, marginBottom: isCompact ? 12 : isWide ? 16 : 12 }}>
+            <StatCard label={metric.label} value={metric.value} isCompact={isCompact} />
+          </View>
         ))}
         {overview?.runtimeMetrics ? (
-          <StatCard
-            label="Checkout Failure Rate"
-            value={`${Math.round((overview.runtimeMetrics.checkoutFailureRate || 0) * 100)}%`}
-          />
+          <View style={{ width: isCompact ? '100%' : isWide ? '25%' : '50%', paddingRight: isWide ? 16 : isCompact ? 0 : 8, marginBottom: isCompact ? 12 : isWide ? 16 : 12 }}>
+            <StatCard
+              label="Checkout Failure Rate"
+              value={`${Math.round((overview.runtimeMetrics.checkoutFailureRate || 0) * 100)}%`}
+              isCompact={isCompact}
+            />
+          </View>
         ) : null}
       </View>
 
@@ -290,6 +306,7 @@ const AdminDashboardScreen = () => {
           ))
         )}
       </View>
+      </View>
 
       <Modal
         visible={Boolean(selectedMessage)}
@@ -329,6 +346,7 @@ const AdminDashboardScreen = () => {
               value={replyBody}
               onChangeText={setReplyBody}
             />
+            {modalError ? <Text style={styles.modalErrorText}>{modalError}</Text> : null}
 
             <View style={styles.modalActions}>
               <TouchableOpacity style={styles.pageBtn} onPress={closeMessageModal}>
@@ -349,7 +367,18 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
-    padding: 16,
+  },
+  scrollContent: {
+    width: '100%',
+    alignItems: 'stretch',
+  },
+  pageContainer: {
+    width: '100%',
+    alignSelf: 'center',
+    paddingVertical: 16,
+  },
+  pageContainerWide: {
+    maxWidth: 1200,
   },
   centerState: {
     flex: 1,
@@ -380,18 +409,17 @@ const styles = StyleSheet.create({
     color: '#111',
   },
   statsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 10,
     marginBottom: 14,
   },
   statCard: {
-    width: '48%',
     borderWidth: 1,
     borderColor: '#ececec',
     borderRadius: 10,
     padding: 12,
     backgroundColor: '#fafafa',
+  },
+  statCardCompact: {
+    padding: 10,
   },
   statLabel: {
     fontSize: 12,
@@ -500,6 +528,11 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     marginTop: 8,
     marginBottom: 10,
+  },
+  modalErrorText: {
+    color: '#c13030',
+    marginTop: 8,
+    fontSize: 12,
   },
   replyBodyInput: {
     minHeight: 92,

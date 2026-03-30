@@ -1,10 +1,13 @@
 import React, { useMemo, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, useWindowDimensions } from 'react-native';
 import { useStripe } from '@stripe/stripe-react-native';
 
 const publishableKey = process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY || '';
 
 const PaymentScreen = ({ navigation, route }) => {
+  const { width } = useWindowDimensions();
+  const isCompact = width < 380;
+  const isWide = width >= 1024;
   const {
     provider,
     clientSecret,
@@ -75,37 +78,49 @@ const PaymentScreen = ({ navigation, route }) => {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.eyebrow}>SECURE PAYMENT</Text>
-      <Text style={styles.title}>Complete Checkout</Text>
-      <Text style={styles.subtitle}>
-        {canUseStripeSheet
-          ? 'Use Stripe Payment Sheet to complete your order securely.'
-          : 'Stripe keys are not configured in this environment. You can continue to the status screen.'}
-      </Text>
+    <View style={[styles.container, isWide && { paddingHorizontal: Math.max(20, (width - 1080) / 2) }]}>
+      <View style={[styles.contentContainer, isWide && { maxWidth: 1080 }]}>
+        <Text style={[styles.eyebrow, { fontSize: isCompact ? 11 : 12 }]}>SECURE PAYMENT</Text>
+        <Text style={[styles.title, { fontSize: isCompact ? 24 : isWide ? 36 : 30, marginBottom: isCompact ? 8 : 10 }]}>Complete Checkout</Text>
+        <Text style={[styles.subtitle, { fontSize: isCompact ? 13 : 14, marginBottom: isCompact ? 16 : 24 }]}>
+          {canUseStripeSheet
+            ? 'Use Stripe Payment Sheet to complete your order securely.'
+            : 'Stripe keys are not configured in this environment. You can continue to the status screen.'}
+        </Text>
 
-      <View style={styles.summaryCard}>
-        <Text style={styles.summaryLabel}>Provider</Text>
-        <Text style={styles.summaryValue}>{String(provider || 'unknown').toUpperCase()}</Text>
-        <Text style={styles.summaryLabel}>Amount</Text>
-        <Text style={styles.summaryValue}>${((amountCents || 0) / 100).toFixed(2)}</Text>
+        <View style={[styles.summaryCard, { padding: isCompact ? 16 : 20 }]}>
+          <Text style={[styles.summaryLabel, { fontSize: isCompact ? 11 : 12 }]}>Provider</Text>
+          <Text style={[styles.summaryValue, { fontSize: isCompact ? 16 : 18 }]}>{String(provider || 'unknown').toUpperCase()}</Text>
+          <Text style={[styles.summaryLabel, { fontSize: isCompact ? 11 : 12, marginTop: isCompact ? 10 : 12 }]}>Amount</Text>
+          <Text style={[styles.summaryValue, { fontSize: isCompact ? 16 : 18 }]}>${((amountCents || 0) / 100).toFixed(2)}</Text>
+        </View>
+
+        {error ? <Text style={[styles.errorText, { marginBottom: isCompact ? 10 : 12 }]}>{error}</Text> : null}
+
+        <TouchableOpacity
+          style={({ pressed }) => [styles.primaryButton, { opacity: pressed ? 0.9 : 1, marginBottom: isCompact ? 10 : 12 }]}
+          onPress={handlePresentPayment}
+          disabled={loading}
+          activeOpacity={0.85}
+          accessibilityRole="button"
+          accessibilityLabel="Open payment sheet"
+          accessibilityHint={canUseStripeSheet ? "Opens Stripe payment sheet" : "Continue to checkout status"}
+        >
+          {loading
+            ? <ActivityIndicator color="#fff" />
+            : <Text style={[styles.primaryButtonText, { fontSize: isCompact ? 14 : 15 }]}>{canUseStripeSheet ? 'Open Payment Sheet' : 'Continue'}</Text>}
+        </TouchableOpacity>
+
+        <TouchableOpacity 
+          style={({ pressed }) => [styles.secondaryButton, { opacity: pressed ? 0.9 : 1 }]} 
+          onPress={continueToStatus}
+          activeOpacity={0.85}
+          accessibilityRole="button"
+          accessibilityLabel="Review checkout status"
+        >
+          <Text style={[styles.secondaryButtonText, { fontSize: isCompact ? 14 : 15 }]}>Review Checkout Status</Text>
+        </TouchableOpacity>
       </View>
-
-      {error ? <Text style={styles.errorText}>{error}</Text> : null}
-
-      <TouchableOpacity
-        style={styles.primaryButton}
-        onPress={handlePresentPayment}
-        disabled={loading}
-      >
-        {loading
-          ? <ActivityIndicator color="#fff" />
-          : <Text style={styles.primaryButtonText}>{canUseStripeSheet ? 'Open Payment Sheet' : 'Continue'}</Text>}
-      </TouchableOpacity>
-
-      <TouchableOpacity style={styles.secondaryButton} onPress={continueToStatus}>
-        <Text style={styles.secondaryButtonText}>Review Checkout Status</Text>
-      </TouchableOpacity>
     </View>
   );
 };
@@ -114,8 +129,12 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
-    padding: 24,
+    paddingVertical: 24,
+    paddingHorizontal: 24,
     justifyContent: 'center',
+  },
+  contentContainer: {
+    width: '100%',
   },
   eyebrow: {
     color: '#888',

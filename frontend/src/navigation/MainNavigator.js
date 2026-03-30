@@ -39,6 +39,9 @@ const CartHeaderButton = ({ navigation }) => {
         onPress={() => navigation.getParent().navigate('Cart')}
         style={styles.cartBtn}
         accessibilityLabel="Open cart"
+        accessibilityRole="button"
+        accessibilityHint="Opens the shopping cart"
+        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
       >
         <Text style={styles.cartIcon}>🛒</Text>
         {itemCount > 0 && (
@@ -73,13 +76,20 @@ const CustomDrawerContent = (props) => {
           style={styles.searchInput} 
           placeholder="Search" 
           placeholderTextColor="#fff"
+          accessibilityLabel="Search museum sections"
         />
       </View>
       
       {/* DrawerItemList automatically renders the defined screens */}
       <DrawerItemList {...props} />
 
-      <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
+      <TouchableOpacity
+        style={styles.logoutBtn}
+        onPress={handleLogout}
+        accessibilityRole="button"
+        accessibilityLabel="Logout"
+        accessibilityHint="Signs you out of the museum app"
+      >
         <Text style={styles.logoutBtnText}>Logout</Text>
       </TouchableOpacity>
     </DrawerContentScrollView>

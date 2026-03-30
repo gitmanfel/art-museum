@@ -1,10 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, ScrollView, useWindowDimensions } from 'react-native';
 import { getCheckoutStatus } from '../services/checkout';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 
 const CheckoutStatusScreen = ({ navigation, route }) => {
+  const { width } = useWindowDimensions();
+  const isCompact = width < 380;
+  const isWide = width >= 1024;
   const {
     paymentIntentId,
     provider,
@@ -74,79 +77,61 @@ const CheckoutStatusScreen = ({ navigation, route }) => {
   const orderReference = paymentIntentId ? String(paymentIntentId) : 'Not available';
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
-      <Text style={styles.eyebrow}>CHECKOUT STATUS</Text>
-      <Text style={styles.title}>{fulfilled ? 'Payment Confirmed' : 'Payment Processing'}</Text>
-      <Text style={styles.subtitle}>
+    <ScrollView style={styles.container} contentContainerStyle={[styles.contentContainer, isWide && { maxWidth: 1080, alignSelf: 'center', width: '100%' }]}>
+      <Text style={[styles.eyebrow, { fontSize: isCompact ? 11 : 12, marginLeft: isCompact ? 16 : 24 }]}>CHECKOUT STATUS</Text>
+      <Text style={[styles.title, { fontSize: isCompact ? 24 : isWide ? 36 : 30, marginLeft: isCompact ? 16 : 24, marginRight: isCompact ? 16 : 24, marginBottom: isCompact ? 8 : 10 }]}>{fulfilled ? 'Payment Confirmed' : 'Payment Processing'}</Text>
+      <Text style={[styles.subtitle, { fontSize: isCompact ? 13 : 14, marginLeft: isCompact ? 16 : 24, marginRight: isCompact ? 16 : 24, marginBottom: isCompact ? 16 : 24 }]}>
         {fulfilled
           ? 'Your order has been fulfilled and your cart has been updated.'
           : 'We are waiting for payment confirmation from the provider.'}
       </Text>
 
-      <View style={styles.card}>
+      <View style={[styles.card, { marginHorizontal: isCompact ? 16 : 24, marginBottom: isCompact ? 14 : 20 }]}>
         <View style={styles.row}>
-          <Text style={styles.label}>Provider</Text>
-          <Text style={styles.value}>{String(provider || 'unknown').toUpperCase()}</Text>
+          <Text style={[styles.label, { fontSize: isCompact ? 11 : 13 }]}>Provider</Text>
+          <Text style={[styles.value, { fontSize: isCompact ? 12 : 13 }]}>{String(provider || 'unknown').toUpperCase()}</Text>
         </View>
         <View style={styles.row}>
-          <Text style={styles.label}>Amount</Text>
-          <Text style={styles.value}>{amountLabel}</Text>
+          <Text style={[styles.label, { fontSize: isCompact ? 11 : 13 }]}>Amount</Text>
+          <Text style={[styles.value, { fontSize: isCompact ? 12 : 13 }]}>{`$${(Number(amountCents) / 100).toFixed(2)}`}</Text>
         </View>
         <View style={styles.row}>
-          <Text style={styles.label}>Status</Text>
-          <Text style={[styles.value, fulfilled ? styles.success : styles.pending]}>
+          <Text style={[styles.label, { fontSize: isCompact ? 11 : 13 }]}>Status</Text>
+          <Text style={[styles.value, fulfilled ? styles.success : styles.pending, { fontSize: isCompact ? 12 : 13 }]}>
             {fulfilled ? 'SUCCEEDED' : String(status || 'processing').toUpperCase()}
           </Text>
         </View>
         <View style={styles.row}>
-          <Text style={styles.label}>Order Ref</Text>
-          <Text style={styles.valueRef}>{orderReference}</Text>
+          <Text style={[styles.label, { fontSize: isCompact ? 11 : 13 }]}>Order Ref</Text>
+          <Text style={[styles.valueRef, { fontSize: isCompact ? 11 : 12 }]}>{paymentIntentId ? String(paymentIntentId) : 'Not available'}</Text>
         </View>
-        {placedLabel ? (
-          <View style={styles.row}>
-            <Text style={styles.label}>Placed At</Text>
-            <Text style={styles.value}>{placedLabel}</Text>
-          </View>
-        ) : null}
-        {entitlementsChanged ? (
-          <View style={styles.noticeBox}>
-            <Text style={styles.noticeTitle}>Membership Activated</Text>
-            <Text style={styles.noticeText}>
-              Your account is now {String(userRole || 'member').toUpperCase()} and member pricing is active.
-            </Text>
-          </View>
-        ) : null}
       </View>
 
-      {lineItems.length > 0 ? (
-        <View style={styles.card}>
-          <Text style={styles.sectionTitle}>Placed Order</Text>
-          {lineItems.map((item) => (
-            <View key={String(item.id)} style={styles.itemRow}>
-              <View style={styles.itemInfo}>
-                <Text style={styles.itemName}>{item.name}</Text>
-                <Text style={styles.itemMeta}>{String(item.type || '').toUpperCase()} x {item.quantity}</Text>
-              </View>
-              <Text style={styles.itemTotal}>${(Number(item.unitPrice || 0) * Number(item.quantity || 0)).toFixed(2)}</Text>
-            </View>
-          ))}
-        </View>
-      ) : null}
-
-      {error ? <Text style={styles.errorText}>{error}</Text> : null}
+      {error ? <Text style={[styles.errorText, { marginHorizontal: isCompact ? 16 : 24 }]}>{error}</Text> : null}
       {checking ? <ActivityIndicator color="#ff4c4c" style={styles.loader} /> : null}
 
       {!fulfilled ? (
-        <TouchableOpacity style={styles.primaryButton} onPress={refreshStatus} disabled={checking}>
-          <Text style={styles.primaryButtonText}>Refresh Status</Text>
+        <TouchableOpacity 
+          style={[styles.primaryButton, { marginHorizontal: isCompact ? 16 : 24, marginBottom: isCompact ? 10 : 12 }]} 
+          onPress={refreshStatus} 
+          disabled={checking}
+          activeOpacity={0.85}
+          accessibilityRole="button"
+          accessibilityLabel="Refresh status"
+          accessibilityHint="Checks payment status from provider"
+        >
+          <Text style={[styles.primaryButtonText, { fontSize: isCompact ? 14 : 15 }]}>Refresh Status</Text>
         </TouchableOpacity>
       ) : null}
 
       <TouchableOpacity
-        style={[styles.secondaryButton, !fulfilled && styles.secondaryButtonAlt]}
+        style={[styles.secondaryButton, !fulfilled && styles.secondaryButtonAlt, { marginHorizontal: isCompact ? 16 : 24 }]}
         onPress={() => navigation.navigate('Main')}
+        activeOpacity={0.85}
+        accessibilityRole="button"
+        accessibilityLabel="Return to museum"
       >
-        <Text style={styles.secondaryButtonText}>{fulfilled ? 'Return to Museum' : 'Back to Museum'}</Text>
+        <Text style={[styles.secondaryButtonText, { fontSize: isCompact ? 14 : 15 }]}>{fulfilled ? 'Return to Museum' : 'Back to Museum'}</Text>
       </TouchableOpacity>
     </ScrollView>
   );
@@ -158,8 +143,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   contentContainer: {
-    padding: 24,
-    paddingBottom: 32,
+    paddingVertical: 24,
   },
   eyebrow: {
     fontSize: 12,

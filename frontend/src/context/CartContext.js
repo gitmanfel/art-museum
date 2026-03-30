@@ -70,8 +70,13 @@ export const CartProvider = ({ children }) => {
 
   const itemCount = items.reduce((sum, i) => sum + i.quantity, 0);
 
+  // Memoize context value to prevent unnecessary re-renders
+  const contextValue = React.useMemo(
+    () => ({ items, total, itemCount, loading, error, loadCart, addItem, removeItem, clearCart }),
+    [items, total, itemCount, loading, error, loadCart, addItem, removeItem, clearCart]
+  );
   return (
-    <CartContext.Provider value={{ items, total, itemCount, loading, error, loadCart, addItem, removeItem, clearCart }}>
+    <CartContext.Provider value={contextValue}>
       {children}
     </CartContext.Provider>
   );

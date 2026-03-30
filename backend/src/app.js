@@ -1,3 +1,14 @@
+/**
+ * Main Express app setup for Museum backend.
+ *
+ * - Uses helmet for security headers
+ * - CORS enabled for all origins (adjust for production)
+ * - Logs all HTTP requests and errors in JSON
+ * - Handles Stripe webhook raw body
+ * - Centralized error handler
+ *
+ * SECURITY NOTE: Ensure JWT_SECRET and other sensitive config are set via environment variables in production.
+ */
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');

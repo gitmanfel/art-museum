@@ -7,10 +7,14 @@ import {
   ScrollView,
   Pressable,
   ActivityIndicator,
+  useWindowDimensions,
 } from 'react-native';
 import { sendContactMessage, subscribeToMailingList } from '../services/contact';
 
 const ContactScreen = () => {
+  const { width } = useWindowDimensions();
+  const isCompact = width < 380;
+  const isWide = width >= 1024;
   const [form, setForm] = useState({ name: '', email: '', subject: '', message: '' });
   const [newsletter, setNewsletter] = useState({ fullName: '', email: '' });
   const [loadingMessage, setLoadingMessage] = useState(false);
@@ -62,60 +66,98 @@ const ContactScreen = () => {
   };
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <Text style={styles.title}>Contact The Museum</Text>
-      <Text style={styles.subtitle}>
+    <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
+      <View style={[styles.content, { paddingHorizontal: isCompact ? 14 : 20 }, isWide && styles.contentWide]}>
+      <Text style={[styles.title, { fontSize: isCompact ? 24 : isWide ? 34 : 30, marginBottom: isCompact ? 6 : 8 }]}>Contact The Museum</Text>
+      <Text style={[styles.subtitle, { fontSize: isCompact ? 13 : 14, marginBottom: isCompact ? 12 : 16, lineHeight: isCompact ? 19 : 21 }]}>
         Questions, partnerships, or event inquiries? Send us a message and subscribe to our mailing list.
       </Text>
 
-      {error ? <Text style={styles.errorText}>{error}</Text> : null}
-      {feedback ? <Text style={styles.feedbackText}>{feedback}</Text> : null}
+      {error ? <Text style={[styles.errorText, { fontSize: isCompact ? 12 : 13 }]}>{error}</Text> : null}
+      {feedback ? <Text style={[styles.feedbackText, { fontSize: isCompact ? 12 : 13 }]}>{feedback}</Text> : null}
 
-      <View style={styles.card}>
-        <Text style={styles.sectionTitle}>Send a Message</Text>
-        <TextInput style={styles.input} placeholder="Full name" value={form.name} onChangeText={(v) => updateForm('name', v)} />
-        <TextInput
-          style={styles.input}
-          placeholder="Email"
-          autoCapitalize="none"
-          keyboardType="email-address"
-          value={form.email}
-          onChangeText={(v) => updateForm('email', v)}
-        />
-        <TextInput style={styles.input} placeholder="Subject" value={form.subject} onChangeText={(v) => updateForm('subject', v)} />
-        <TextInput
-          style={[styles.input, styles.messageInput]}
-          placeholder="Message"
-          multiline
-          value={form.message}
-          onChangeText={(v) => updateForm('message', v)}
-        />
+      <View style={[styles.formGrid, isWide && styles.formGridWide]}>
+        <View style={[styles.card, styles.formCard, isWide && styles.formCardWide, { marginBottom: isWide ? 0 : (isCompact ? 12 : 14), padding: isCompact ? 14 : 16 }]}>
+          <Text style={[styles.sectionTitle, { fontSize: isCompact ? 16 : 18, marginBottom: isCompact ? 10 : 10 }]}>Send a Message</Text>
+          <TextInput
+            style={[styles.input, { fontSize: isCompact ? 13 : 14, marginBottom: isCompact ? 10 : 10 }]}
+            placeholder="Full name"
+            value={form.name}
+            onChangeText={(v) => updateForm('name', v)}
+            accessibilityLabel="Contact full name input"
+            accessibilityHint="Enter your full name"
+          />
+          <TextInput
+            style={[styles.input, { fontSize: isCompact ? 13 : 14, marginBottom: isCompact ? 10 : 10 }]}
+            placeholder="Email"
+            autoCapitalize="none"
+            keyboardType="email-address"
+            value={form.email}
+            onChangeText={(v) => updateForm('email', v)}
+            accessibilityLabel="Contact email input"
+            accessibilityHint="Enter your email address"
+          />
+          <TextInput
+            style={[styles.input, { fontSize: isCompact ? 13 : 14, marginBottom: isCompact ? 10 : 10 }]}
+            placeholder="Subject"
+            value={form.subject}
+            onChangeText={(v) => updateForm('subject', v)}
+            accessibilityLabel="Subject input"
+            accessibilityHint="Enter message subject"
+          />
+          <TextInput
+            style={[styles.input, styles.messageInput, { fontSize: isCompact ? 13 : 14, minHeight: isCompact ? 100 : 110 }]}
+            placeholder="Message"
+            multiline
+            value={form.message}
+            onChangeText={(v) => updateForm('message', v)}
+            accessibilityLabel="Message input"
+            accessibilityHint="Type your message here"
+          />
 
-        <Pressable style={styles.button} onPress={submitMessage} disabled={loadingMessage}>
-          {loadingMessage ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>Send Message</Text>}
-        </Pressable>
+          <Pressable
+            style={({ pressed }) => [styles.button, { opacity: pressed ? 0.85 : 1, paddingVertical: isCompact ? 11 : 13 }]}
+            onPress={submitMessage}
+            disabled={loadingMessage}
+            accessibilityRole="button"
+            accessibilityLabel="Send message"
+          >
+            {loadingMessage ? <ActivityIndicator color="#fff" /> : <Text style={[styles.buttonText, { fontSize: isCompact ? 13 : 14 }]}>Send Message</Text>}
+          </Pressable>
+        </View>
+
+        <View style={[styles.card, styles.formCard, isWide && styles.formCardWide, { padding: isCompact ? 14 : 16 }]}>
+          <Text style={[styles.sectionTitle, { fontSize: isCompact ? 16 : 18, marginBottom: isCompact ? 10 : 10 }]}>Join Our Mailing List</Text>
+          <TextInput
+            style={[styles.input, { fontSize: isCompact ? 13 : 14, marginBottom: isCompact ? 10 : 10 }]}
+            placeholder="Full name (optional)"
+            value={newsletter.fullName}
+            onChangeText={(v) => updateNewsletter('fullName', v)}
+            accessibilityLabel="Newsletter full name input"
+            accessibilityHint="Enter your name (optional)"
+          />
+          <TextInput
+            style={[styles.input, { fontSize: isCompact ? 13 : 14, marginBottom: isCompact ? 12 : 14 }]}
+            placeholder="Email"
+            autoCapitalize="none"
+            keyboardType="email-address"
+            value={newsletter.email}
+            onChangeText={(v) => updateNewsletter('email', v)}
+            accessibilityLabel="Newsletter email input"
+            accessibilityHint="Enter your email address to subscribe"
+          />
+
+          <Pressable
+            style={({ pressed }) => [styles.secondaryButton, { opacity: pressed ? 0.85 : 1, paddingVertical: isCompact ? 11 : 13 }]}
+            onPress={subscribe}
+            disabled={loadingSubscribe}
+            accessibilityRole="button"
+            accessibilityLabel="Subscribe to mailing list"
+          >
+            {loadingSubscribe ? <ActivityIndicator color="#fff" /> : <Text style={[styles.buttonText, { fontSize: isCompact ? 13 : 14 }]}>Subscribe</Text>}
+          </Pressable>
+        </View>
       </View>
-
-      <View style={styles.card}>
-        <Text style={styles.sectionTitle}>Join Our Mailing List</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="Full name (optional)"
-          value={newsletter.fullName}
-          onChangeText={(v) => updateNewsletter('fullName', v)}
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Email"
-          autoCapitalize="none"
-          keyboardType="email-address"
-          value={newsletter.email}
-          onChangeText={(v) => updateNewsletter('email', v)}
-        />
-
-        <Pressable style={styles.secondaryButton} onPress={subscribe} disabled={loadingSubscribe}>
-          {loadingSubscribe ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>Subscribe</Text>}
-        </Pressable>
       </View>
     </ScrollView>
   );
@@ -126,9 +168,33 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff',
   },
+  scrollContent: {
+    width: '100%',
+    alignItems: 'stretch',
+  },
   content: {
-    padding: 20,
+    width: '100%',
+    alignSelf: 'center',
+    paddingVertical: 20,
     paddingBottom: 28,
+  },
+  contentWide: {
+    maxWidth: 1000,
+  },
+  formGrid: {
+    width: '100%',
+  },
+  formGridWide: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+  },
+  formCard: {
+    flex: 1,
+  },
+  formCardWide: {
+    width: '49%',
+    flex: 0,
   },
   title: {
     fontSize: 30,

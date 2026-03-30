@@ -1,3 +1,13 @@
+// Base API client with standardized error handling
+const baseApiRequest = async (apiCall) => {
+  try {
+    const response = await apiCall();
+    return { success: true, ...response.data };
+  } catch (error) {
+    const errMsg = error.response?.data?.error || error.message || 'Unknown error';
+    return { success: false, error: errMsg };
+  }
+};
 import axios from 'axios';
 import { saveToken, deleteToken, getToken } from '../utils/secureStorage';
 
@@ -22,18 +32,11 @@ export const login = async (email, password) => {
     // Extract token from response and securely save it
     const { token, user } = response.data;
     if (token) {
-        await saveToken(token);
-    }
-    
-    return { success: true, user };
-  } catch (error) {
-    console.error("Login failed:", error.response?.data?.error || error.message);
-    return { 
-        success: false, 
-        error: error.response?.data?.error || "Login failed due to a network or server error." 
-    };
-  }
-};
+      const result = await baseApiRequest(() => authApi.post('/login', { email, password }));
+      if (result.success && result.token) {
+        await saveToken(result.token);
+      }
+      return result;
 
 /**
  * Register a new account and securely store the token.

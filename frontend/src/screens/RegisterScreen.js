@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, Pressable, StyleSheet, ActivityIndicator, Platform } from 'react-native';
+import { View, Text, TextInput, Pressable, StyleSheet, ActivityIndicator, Platform, useWindowDimensions } from 'react-native';
 import { register } from '../services/auth';
 import { useAuth } from '../context/AuthContext';
 
@@ -8,6 +8,9 @@ const isStrongPassword = (value) => {
 };
 
 const RegisterScreen = ({ navigation }) => {
+  const { width } = useWindowDimensions();
+  const isCompact = width < 380;
+  const isWide = width >= 1024;
   const webPress = (handler) => (Platform.OS === 'web' ? { onClick: handler } : {});
   const { refreshProfile } = useAuth();
   const [email, setEmail] = useState('');
@@ -50,60 +53,75 @@ const RegisterScreen = ({ navigation }) => {
     setLoading(false);
   };
 
+  const containerPadding = isCompact ? 16 : 20;
+  const titleSize = isCompact ? 24 : isWide ? 32 : 28;
+  const containerMaxWidth = isWide ? 420 : '100%';
+
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>CREATE ACCOUNT</Text>
+    <View style={[styles.container, { paddingHorizontal: containerPadding }]}>
+      <View style={[styles.innerContainer, isWide && { maxWidth: containerMaxWidth, alignSelf: 'center' }]}>
+        <Text style={[styles.title, { fontSize: titleSize, marginBottom: isCompact ? 30 : 40 }]}>CREATE ACCOUNT</Text>
 
-      {error ? <Text style={styles.errorText}>{error}</Text> : null}
+        {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
-      <TextInput
-        style={styles.input}
-        placeholder="Email address"
-        placeholderTextColor="#aaa"
-        value={email}
-        onChangeText={setEmail}
-        autoCapitalize="none"
-        keyboardType="email-address"
-      />
+        <TextInput
+          style={[styles.input, { marginBottom: isCompact ? 8 : 10 }]}
+          placeholder="Email address"
+          placeholderTextColor="#aaa"
+          value={email}
+          onChangeText={setEmail}
+          autoCapitalize="none"
+          keyboardType="email-address"
+          accessibilityLabel="Email address input"
+          accessibilityHint="Enter your email to create account"
+        />
 
-      <TextInput
-        style={styles.input}
-        placeholder="Password"
-        placeholderTextColor="#aaa"
-        value={password}
-        onChangeText={setPassword}
-        secureTextEntry
-      />
+        <TextInput
+          style={[styles.input, { marginBottom: isCompact ? 8 : 10 }]}
+          placeholder="Password"
+          placeholderTextColor="#aaa"
+          value={password}
+          onChangeText={setPassword}
+          secureTextEntry
+          accessibilityLabel="Password input"
+          accessibilityHint="Create a strong password with 10+ characters"
+        />
 
-      <Text style={styles.hintText}>
-        Use 10+ characters with upper/lowercase, a number, and a special character.
-      </Text>
+        <Text style={[styles.hintText, { marginBottom: isCompact ? 8 : 10 }]}>
+          Use 10+ characters with upper/lowercase, a number, and a special character.
+        </Text>
 
-      <TextInput
-        style={styles.input}
-        placeholder="Confirm password"
-        placeholderTextColor="#aaa"
-        value={confirmPassword}
-        onChangeText={setConfirmPassword}
-        secureTextEntry
-      />
+        <TextInput
+          style={[styles.input, { marginBottom: isCompact ? 14 : 16 }]}
+          placeholder="Confirm password"
+          placeholderTextColor="#aaa"
+          value={confirmPassword}
+          onChangeText={setConfirmPassword}
+          secureTextEntry
+          accessibilityLabel="Confirm password input"
+          accessibilityHint="Re-enter your password"
+        />
 
-      <Pressable
-        style={styles.registerButton}
-        onPress={handleRegister}
-        disabled={loading}
-        {...webPress(handleRegister)}
-      >
-        {loading ? (
-          <ActivityIndicator color="#fff" />
-        ) : (
-          <Text style={styles.registerButtonText}>Create Account</Text>
-        )}
-      </Pressable>
+        <Pressable
+          style={({ pressed }) => [styles.registerButton, { marginBottom: isCompact ? 12 : 15, opacity: pressed ? 0.85 : 1 }]}
+          onPress={handleRegister}
+          disabled={loading}
+          {...webPress(handleRegister)}
+          accessibilityRole="button"
+          accessibilityLabel="Create account button"
+          accessibilityHint="Creates your account with the provided credentials"
+        >
+          {loading ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <Text style={[styles.registerButtonText, { fontSize: isCompact ? 14 : 16 }]}>Create Account</Text>
+          )}
+        </Pressable>
 
-      <Pressable onPress={() => navigation.navigate('Login')} {...webPress(() => navigation.navigate('Login'))}>
-        <Text style={styles.loginText}>Already have an account?</Text>
-      </Pressable>
+        <Pressable onPress={() => navigation.navigate('Login')} {...webPress(() => navigation.navigate('Login'))} accessibilityRole="button" accessibilityLabel="Log in">
+          <Text style={[styles.loginText, { fontSize: isCompact ? 11 : 12 }]}>Already have an account?</Text>
+        </Pressable>
+      </View>
     </View>
   );
 };
@@ -112,14 +130,15 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: 'center',
-    padding: 20,
+    paddingVertical: 20,
     backgroundColor: '#000',
   },
+  innerContainer: {
+    width: '100%',
+  },
   title: {
-    fontSize: 28,
     fontWeight: 'bold',
     color: '#fff',
-    marginBottom: 40,
     textAlign: 'center',
   },
   input: {

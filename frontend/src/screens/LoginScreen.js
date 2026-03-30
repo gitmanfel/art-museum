@@ -1,10 +1,13 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, Pressable, StyleSheet, ActivityIndicator, Platform } from 'react-native';
+import { View, Text, TextInput, Pressable, StyleSheet, ActivityIndicator, Platform, useWindowDimensions } from 'react-native';
 import { login, forgotPassword } from '../services/auth';
 import { useAuth } from '../context/AuthContext';
 
 const LoginScreen = ({ navigation }) => {
   const { refreshProfile } = useAuth();
+  const { width } = useWindowDimensions();
+  const isCompact = width < 380;
+  const isWide = width >= 1024;
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -56,52 +59,69 @@ const LoginScreen = ({ navigation }) => {
     setLoading(false);
   };
 
+  const containerPadding = isCompact ? 16 : 20;
+  const titleSize = isCompact ? 24 : isWide ? 32 : 28;
+  const containerMaxWidth = isWide ? 420 : '100%';
+  
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>YOUR ART MUSEUM</Text>
-      
-      {error ? <Text style={styles.errorText}>{error}</Text> : null}
-      {message ? <Text style={styles.messageText}>{message}</Text> : null}
-      
-      <TextInput
-        style={styles.input}
-        placeholder="Email address"
-        placeholderTextColor="#aaa"
-        value={email}
-        onChangeText={setEmail}
-        autoCapitalize="none"
-        keyboardType="email-address"
-      />
-      
-      <TextInput
-        style={styles.input}
-        placeholder="Password"
-        placeholderTextColor="#aaa"
-        value={password}
-        onChangeText={setPassword}
-        secureTextEntry
-      />
-      
-      <Pressable onPress={handleForgotPassword} {...webPress(handleForgotPassword)}>
-        <Text style={styles.forgotPassword}>Forgot your password?</Text>
-      </Pressable>
-      
-      <Pressable
-        style={styles.loginButton}
-        onPress={handleLogin}
-        disabled={loading}
-        {...webPress(handleLogin)}
-      >
-        {loading ? (
-            <ActivityIndicator color="#fff" />
-        ) : (
-            <Text style={styles.loginButtonText}>Log In</Text>
-        )}
-      </Pressable>
-      
-      <Pressable onPress={() => navigation.navigate('Register')} {...webPress(() => navigation.navigate('Register'))}>
-        <Text style={styles.registerText}>Don't have an account?</Text>
-      </Pressable>
+    <View style={[styles.container, { paddingHorizontal: containerPadding }]}>
+      <View style={[styles.innerContainer, isWide && { maxWidth: containerMaxWidth, alignSelf: 'center' }]}>
+        <Text style={[styles.title, { fontSize: titleSize, marginBottom: isCompact ? 30 : 40 }]}>YOUR ART MUSEUM</Text>
+        
+        {error ? (
+          <Text style={styles.errorText} accessibilityLiveRegion="polite">{error}</Text>
+        ) : null}
+        {message ? (
+          <Text style={styles.messageText} accessibilityLiveRegion="polite">{message}</Text>
+        ) : null}
+        
+        <TextInput
+          style={[styles.input, { marginBottom: isCompact ? 8 : 10 }]}
+          placeholder="Email address"
+          placeholderTextColor="#aaa"
+          value={email}
+          onChangeText={setEmail}
+          autoCapitalize="none"
+          keyboardType="email-address"
+          accessibilityLabel="Email address input"
+          accessibilityHint="Enter your email to log in"
+        />
+        
+        <TextInput
+          style={[styles.input, { marginBottom: isCompact ? 14 : 16 }]}
+          placeholder="Password"
+          placeholderTextColor="#aaa"
+          value={password}
+          onChangeText={setPassword}
+          secureTextEntry
+          accessibilityLabel="Password input"
+          accessibilityHint="Enter your password"
+        />
+        
+        <Pressable onPress={handleForgotPassword} {...webPress(handleForgotPassword)} accessibilityRole="button" accessibilityLabel="Forgot your password">
+          <Text style={[styles.forgotPassword, { marginBottom: isCompact ? 16 : 20 }]}>Forgot your password?</Text>
+        </Pressable>
+        
+        <Pressable
+          style={({ pressed }) => [styles.loginButton, { opacity: pressed ? 0.85 : 1 }]}
+          onPress={handleLogin}
+          disabled={loading}
+          {...webPress(handleLogin)}
+          accessibilityRole="button"
+          accessibilityLabel="Log in button"
+          accessibilityHint="Signs you into your account"
+        >
+          {loading ? (
+              <ActivityIndicator color="#fff" />
+          ) : (
+              <Text style={[styles.loginButtonText, { fontSize: isCompact ? 14 : 16 }]}>Log In</Text>
+          )}
+        </Pressable>
+        
+        <Pressable onPress={() => navigation.navigate('Register')} {...webPress(() => navigation.navigate('Register'))} accessibilityRole="button" accessibilityLabel="Create account">
+          <Text style={[styles.registerText, { fontSize: isCompact ? 11 : 12 }]}>Don't have an account?</Text>
+        </Pressable>
+      </View>
     </View>
   );
 };
@@ -110,14 +130,15 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: 'center',
-    padding: 20,
+    paddingVertical: 20,
     backgroundColor: '#000', 
   },
+  innerContainer: {
+    width: '100%',
+  },
   title: {
-    fontSize: 28,
     fontWeight: 'bold',
     color: '#fff',
-    marginBottom: 40,
     textAlign: 'center',
   },
   input: {

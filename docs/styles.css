@@ -15,6 +15,21 @@
 
 body {
   margin: 0;
+/*
+  =============================
+  Accessibility: Focus Styles
+  =============================
+*/
+:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/*
+  =============================
+  End of File
+  =============================
+*/
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
   background: radial-gradient(circle at top left, #1a1f2b, var(--bg) 42%);
   color: var(--text);
@@ -23,17 +38,17 @@ body {
 .wrap {
   width: min(1100px, 92vw);
   margin: 0 auto;
-  padding: 44px 0 64px;
+  padding: var(--space-lg) 0 var(--space-md);
 }
 
 .badge {
   display: inline-block;
   letter-spacing: 0.14em;
-  font-size: 0.72rem;
+  font-size: var(--font-size-sm);
   border: 1px solid var(--accent);
   color: var(--accent-2);
   border-radius: 999px;
-  padding: 6px 10px;
+  padding: var(--space-xs) var(--space-sm);
 }
 
 h1 {
@@ -47,21 +62,13 @@ h1 {
   line-height: 1.65;
 }
 
-.top-actions {
-  margin-top: 18px;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-}
-
-.btn {
-  display: inline-block;
+/*
   text-decoration: none;
   border: 1px solid var(--accent);
   background: var(--accent);
   color: white;
-  border-radius: 8px;
-  padding: 10px 14px;
+  border-radius: var(--radius);
+  padding: var(--space-xs) var(--space-md);
   font-weight: 700;
 }
 
@@ -86,32 +93,32 @@ h1 {
 
 .card h2 {
   margin: 0;
-  font-size: 1.05rem;
+  font-size: var(--font-size-lg);
 }
 
 .card p {
-  margin: 8px 0 14px;
+  margin: var(--space-xs) 0 var(--space-sm);
   color: var(--muted);
   line-height: 1.55;
-  font-size: 0.95rem;
+  font-size: var(--font-size-base);
 }
 
 .hero-panel {
-  margin-top: 22px;
+  margin-top: var(--space-sm);
 }
 
 .audience-grid {
-  margin-top: 16px;
+  margin-top: var(--space-sm);
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 14px;
+  gap: var(--space-xs);
 }
 
 .mini-card {
   background: rgba(255, 255, 255, 0.02);
   border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 14px;
+  border-radius: var(--radius);
+  padding: var(--space-sm);
 }
 
 .mini-card h3 {
@@ -339,8 +346,8 @@ h1 {
 }
 
 .system-meta-item {
-  padding: 7px 12px;
-  border-radius: 10px;
+  padding: var(--space-xs) var(--space-sm);
+  border-radius: var(--radius);
   border: 1px solid rgba(255, 255, 255, 0.1);
   background: rgba(255, 255, 255, 0.045);
 }

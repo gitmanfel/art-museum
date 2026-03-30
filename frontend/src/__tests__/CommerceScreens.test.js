@@ -41,11 +41,13 @@ describe('Commerce screens', () => {
     });
     getProducts.mockResolvedValue([]);
 
-    const { getByText } = render(<ShopScreen navigation={navigation} />);
+    const { getByText, findAllByText, getByLabelText } = render(<ShopScreen navigation={navigation} />);
 
-    await waitFor(() => expect(getByText('Braun Classic Watch')).toBeTruthy());
+    await waitFor(() => expect(getProduct).toHaveBeenCalledWith('product-braun-watch'));
+    expect((await findAllByText('Braun Classic Watch')).length).toBeGreaterThan(0);
     expect(getByText('$160.00')).toBeTruthy();
     expect(getByText('$140.00 Member Price')).toBeTruthy();
+    expect(getByLabelText('Add 0 Braun Classic Watch to cart')).toBeTruthy();
   });
 
   it('switches product details when clicking an item in More in Shop', async () => {
@@ -89,9 +91,10 @@ describe('Commerce screens', () => {
       { id: 'ticket-seniors', name: 'Seniors', description: '65+ with ID', price: 5 },
     ]);
 
-    const { getByText } = render(<TicketsScreen navigation={navigation} />);
+    const { getByText, getByLabelText } = render(<TicketsScreen navigation={navigation} />);
 
     await waitFor(() => expect(getByText('Adults')).toBeTruthy());
+    expect(getByLabelText('Select visit date Today')).toBeTruthy();
 
     fireEvent.press(getByText('Continue to Payment'));
 

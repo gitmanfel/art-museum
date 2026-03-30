@@ -1,13 +1,20 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Image, ScrollView, Dimensions, Pressable, Alert, ActivityIndicator, Platform } from 'react-native';
+import { View, Text, StyleSheet, Image, ScrollView, Pressable, Alert, ActivityIndicator, Platform, useWindowDimensions } from 'react-native';
 import { useCart } from '../context/CartContext';
 import { getProduct, getProducts } from '../services/catalogue';
 
-const { width } = Dimensions.get('window');
-
 const DEFAULT_PRODUCT_ID = 'product-braun-watch';
 
+const formatCategory = (value) => (value ? value.replace(/-/g, ' ') : 'Museum shop');
+
 const ShopScreen = ({ navigation }) => {
+  const { width } = useWindowDimensions();
+  const isCompact = width < 380;
+  const isWide = width >= 1024;
+  const slideWidth = width;
+  const heroImageWidth = isWide ? Math.min(width * 0.55, 520) : width * 0.7;
+  const relatedCardWidth = isCompact ? 156 : isWide ? 210 : 178;
+
   const webPress = (handler) => (Platform.OS === 'web' ? { onClick: handler } : {});
   const [product, setProduct] = useState(null);
   const [products, setProducts] = useState([]);
@@ -89,6 +96,9 @@ const ShopScreen = ({ navigation }) => {
   };
 
   const stockQuantity = Number(product?.stock_quantity || 0);
+  const memberPrice = Number(product?.member_price || product?.price || 0);
+  const standardPrice = Number(product?.price || 0);
+  const savings = Math.max(0, standardPrice - memberPrice);
 
   const incrementQuantity = () => {
     setQuantity((prev) => (prev < stockQuantity ? prev + 1 : prev));
@@ -148,8 +158,8 @@ const ShopScreen = ({ navigation }) => {
           scrollEventThrottle={16}
         >
           {productImages.map((img) => (
-            <View key={img.id} style={styles.slide}>
-              <Image source={{ uri: img.uri }} style={styles.productImage} />
+            <View key={img.id} style={[styles.slide, { width: slideWidth }]}>
+              <Image source={{ uri: img.uri }} style={[styles.productImage, { width: heroImageWidth }]} />
             </View>
           ))}
         </ScrollView>
@@ -169,18 +179,22 @@ const ShopScreen = ({ navigation }) => {
       </View>
 
       {/* Product Details */}
-      <View style={styles.detailsContainer}>
-        <Text style={styles.productTitle}>{product.name}</Text>
+      <View style={[styles.detailsContainer, isCompact && styles.detailsContainerCompact, isWide && styles.detailsContainerWide]}>
+        <View style={styles.productBadgeRow}>
+          <Text style={styles.productBadge}>{formatCategory(product.category)}</Text>
+          {savings > 0 ? <Text style={styles.savingsBadge}>Save ${savings.toFixed(2)} as member</Text> : null}
+        </View>
+        <Text style={[styles.productTitle, isCompact && styles.productTitleCompact, isWide && styles.productTitleWide]}>{product.name}</Text>
         
-        <Text style={styles.productDescription}>
+        <Text style={[styles.productDescription, isWide && styles.productDescriptionWide]}>
           {product.description}
         </Text>
 
         <View style={styles.priceRow}>
-          <View>
+          <View style={styles.priceBlock}>
             <Text style={styles.price}>${Number(product.price).toFixed(2)}</Text>
             <Text style={styles.memberPrice}>
-              ${Number(product.member_price || product.price).toFixed(2)} Member Price
+              ${memberPrice.toFixed(2)} Member Price
             </Text>
             <Text style={styles.stockText}>
               {stockQuantity > 0 ? `${stockQuantity} in stock` : 'Out of stock'}
@@ -188,16 +202,26 @@ const ShopScreen = ({ navigation }) => {
           </View>
           
           {/* Quantity Selector */}
-          <View style={styles.quantitySelector}>
-            <Pressable onPress={decrementQuantity} style={styles.qtyBtn} {...webPress(decrementQuantity)}>
+          <View style={[styles.quantitySelector, isCompact && styles.quantitySelectorCompact]}>
+            <Pressable
+              onPress={decrementQuantity}
+              style={({ pressed }) => [styles.qtyBtn, pressed && styles.qtyBtnPressed]}
+              {...webPress(decrementQuantity)}
+              accessibilityRole="button"
+              accessibilityLabel="Decrease product quantity"
+              hitSlop={8}
+            >
               <Text style={styles.qtyBtnText}>-</Text>
             </Pressable>
             <Text style={styles.qtyText}>{quantity}</Text>
             <Pressable
               onPress={incrementQuantity}
-              style={styles.qtyBtn}
+              style={({ pressed }) => [styles.qtyBtn, pressed && styles.qtyBtnPressed]}
               disabled={quantity >= stockQuantity}
               {...webPress(incrementQuantity)}
+              accessibilityRole="button"
+              accessibilityLabel="Increase product quantity"
+              hitSlop={8}
             >
               <Text style={styles.qtyBtnText}>+</Text>
             </Pressable>
@@ -207,8 +231,14 @@ const ShopScreen = ({ navigation }) => {
         <Pressable
           onPress={handleAddToCart}
           disabled={quantity === 0 || loading || stockQuantity === 0}
-          style={[styles.addToCartButton, (quantity === 0 || loading || stockQuantity === 0) && styles.addToCartButtonDisabled]}
+          style={({ pressed }) => [
+            styles.addToCartButton,
+            (quantity === 0 || loading || stockQuantity === 0) && styles.addToCartButtonDisabled,
+            pressed && quantity > 0 && !loading && stockQuantity > 0 && styles.addToCartButtonPressed,
+          ]}
           {...webPress(handleAddToCart)}
+          accessibilityRole="button"
+          accessibilityLabel={`Add ${quantity} ${product.name} to cart`}
         >
           {loading
             ? <ActivityIndicator color="#fff" />
@@ -217,22 +247,35 @@ const ShopScreen = ({ navigation }) => {
         </Pressable>
 
         <View style={styles.moreSection}>
-          <Text style={styles.moreSectionTitle}>More in Shop</Text>
+          <Text style={[styles.moreSectionTitle, isWide && styles.moreSectionTitleWide]}>More in Shop</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.moreList}>
             {products.map((item) => (
               <Pressable
                 key={item.id}
                 onPress={() => loadProductById(item.id)}
-                style={[styles.productCard, item.id === product.id && styles.productCardActive]}
+                style={({ pressed }) => [
+                  styles.productCard,
+                  { width: relatedCardWidth },
+                  item.id === product.id && styles.productCardActive,
+                  pressed && styles.productCardPressed,
+                ]}
                 {...webPress(() => loadProductById(item.id))}
+                accessibilityRole="button"
+                accessibilityLabel={`Preview shop item ${item.name}`}
               >
                 <Image
                   source={{ uri: item.image_url || item.images?.[0] }}
                   style={styles.productCardImage}
                 />
-                <Text numberOfLines={1} style={styles.productCardName}>{item.name}</Text>
-                <Text style={styles.productCardPrice}>${Number(item.price).toFixed(2)}</Text>
-                <Text style={styles.productCardAction}>View details</Text>
+                <Text style={styles.productCardBadge}>{formatCategory(item.category)}</Text>
+                <Text numberOfLines={2} style={styles.productCardName}>{item.name}</Text>
+                <View style={styles.productCardPriceRow}>
+                  <Text style={styles.productCardPrice}>${Number(item.price).toFixed(2)}</Text>
+                  {Number(item.member_price || item.price) < Number(item.price) ? (
+                    <Text style={styles.productCardMember}>Member ${Number(item.member_price).toFixed(2)}</Text>
+                  ) : null}
+                </View>
+                <Text style={styles.productCardAction}>Preview item</Text>
               </Pressable>
             ))}
           </ScrollView>
@@ -269,12 +312,10 @@ const styles = StyleSheet.create({
     borderColor: '#eee',
   },
   slide: {
-    width: width,
     justifyContent: 'center',
     alignItems: 'center',
   },
   productImage: {
-    width: width * 0.7,
     height: 300,
     resizeMode: 'contain',
   },
@@ -298,11 +339,53 @@ const styles = StyleSheet.create({
   detailsContainer: {
     padding: 20,
   },
+  detailsContainerWide: {
+    maxWidth: 1080,
+    width: '100%',
+    alignSelf: 'center',
+  },
+  detailsContainerCompact: {
+    padding: 14,
+  },
+  productBadgeRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginBottom: 10,
+  },
+  productBadge: {
+    backgroundColor: '#f6eadc',
+    color: '#8f4f1b',
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 0.5,
+    textTransform: 'uppercase',
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+  },
+  savingsBadge: {
+    backgroundColor: '#eef5ea',
+    color: '#3d6a37',
+    fontSize: 10,
+    fontWeight: '700',
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+  },
   productTitle: {
     fontSize: 24,
     fontWeight: 'bold',
     color: '#000',
     marginBottom: 15,
+  },
+  productTitleCompact: {
+    fontSize: 21,
+    marginBottom: 12,
+  },
+  productTitleWide: {
+    fontSize: 30,
+    marginBottom: 18,
   },
   productDescription: {
     fontSize: 12,
@@ -310,11 +393,20 @@ const styles = StyleSheet.create({
     lineHeight: 18,
     marginBottom: 25,
   },
+  productDescriptionWide: {
+    fontSize: 13,
+    lineHeight: 20,
+    maxWidth: 760,
+  },
   priceRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 30,
+  },
+  priceBlock: {
+    flex: 1,
+    paddingRight: 10,
   },
   price: {
     fontSize: 18,
@@ -338,9 +430,15 @@ const styles = StyleSheet.create({
     borderColor: '#eee',
     borderRadius: 4,
   },
+  quantitySelectorCompact: {
+    alignSelf: 'flex-start',
+  },
   qtyBtn: {
     paddingHorizontal: 15,
     paddingVertical: 10,
+  },
+  qtyBtnPressed: {
+    backgroundColor: '#f2f2f2',
   },
   qtyBtnText: {
     fontSize: 18,
@@ -356,6 +454,9 @@ const styles = StyleSheet.create({
     paddingVertical: 15,
     alignItems: 'center',
     borderRadius: 4,
+  },
+  addToCartButtonPressed: {
+    backgroundColor: '#e44343',
   },
   addToCartButtonText: {
     color: '#fff',
@@ -374,45 +475,72 @@ const styles = StyleSheet.create({
     color: '#222',
     marginBottom: 10,
   },
+  moreSectionTitleWide: {
+    fontSize: 18,
+    marginBottom: 12,
+  },
   moreList: {
     paddingRight: 12,
   },
   productCard: {
-    width: 130,
     marginRight: 12,
     borderWidth: 1,
-    borderColor: '#eee',
-    borderRadius: 8,
-    padding: 8,
+    borderColor: '#eadccf',
+    borderRadius: 18,
+    padding: 10,
     backgroundColor: '#fff',
   },
   productCardActive: {
-    borderColor: '#ff4c4c',
-    backgroundColor: '#fff7f7',
+    borderColor: '#d9732f',
+    backgroundColor: '#fff8f1',
+  },
+  productCardPressed: {
+    opacity: 0.86,
   },
   productCardImage: {
     width: '100%',
-    height: 80,
-    borderRadius: 4,
+    height: 118,
+    borderRadius: 12,
     backgroundColor: '#f2f2f2',
-    marginBottom: 6,
+    marginBottom: 8,
+  },
+  productCardBadge: {
+    alignSelf: 'flex-start',
+    backgroundColor: '#f6eadc',
+    color: '#8f4f1b',
+    fontSize: 9,
+    fontWeight: '700',
+    borderRadius: 999,
+    paddingHorizontal: 8,
+    paddingVertical: 5,
+    textTransform: 'uppercase',
   },
   productCardName: {
-    fontSize: 12,
-    fontWeight: '600',
+    marginTop: 8,
+    fontSize: 13,
+    fontWeight: '700',
     color: '#222',
+    minHeight: 34,
+  },
+  productCardPriceRow: {
+    marginTop: 8,
   },
   productCardPrice: {
-    marginTop: 4,
     fontSize: 12,
-    color: '#ff4c4c',
+    color: '#b64d17',
     fontWeight: '700',
   },
-  productCardAction: {
-    marginTop: 4,
+  productCardMember: {
+    marginTop: 2,
     fontSize: 10,
-    color: '#333',
-    textDecorationLine: 'underline',
+    color: '#55704d',
+    fontWeight: '600',
+  },
+  productCardAction: {
+    marginTop: 8,
+    fontSize: 10,
+    color: '#284960',
+    fontWeight: '700',
   },
 });
 

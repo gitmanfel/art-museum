@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, Pressable, StyleSheet, ActivityIndicator, Platform } from 'react-native';
+import { View, Text, TextInput, Pressable, StyleSheet, ActivityIndicator, Platform, useWindowDimensions } from 'react-native';
 import { resetPassword } from '../services/auth';
 
 const isStrongPassword = (value) => {
@@ -7,6 +7,9 @@ const isStrongPassword = (value) => {
 };
 
 const ResetPasswordScreen = ({ navigation, route }) => {
+  const { width } = useWindowDimensions();
+  const isCompact = width < 380;
+  const isWide = width >= 1024;
   const webPress = (handler) => (Platform.OS === 'web' ? { onClick: handler } : {});
   const initialToken = route?.params?.token || '';
   const [token, setToken] = useState(initialToken);
@@ -52,51 +55,71 @@ const ResetPasswordScreen = ({ navigation, route }) => {
     setLoading(false);
   };
 
+  const containerPadding = isCompact ? 16 : 20;
+  const titleSize = isCompact ? 24 : isWide ? 32 : 28;
+  const containerMaxWidth = isWide ? 420 : '100%';
+
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>RESET PASSWORD</Text>
+    <View style={[styles.container, { paddingHorizontal: containerPadding }]}>
+      <View style={[styles.innerContainer, isWide && { maxWidth: containerMaxWidth, alignSelf: 'center' }]}>
+        <Text style={[styles.title, { fontSize: titleSize, marginBottom: isCompact ? 30 : 40 }]}>RESET PASSWORD</Text>
 
-      {error ? <Text style={styles.errorText}>{error}</Text> : null}
-      {message ? <Text style={styles.messageText}>{message}</Text> : null}
+        {error ? <Text style={styles.errorText}>{error}</Text> : null}
+        {message ? <Text style={styles.messageText}>{message}</Text> : null}
 
-      <TextInput
-        style={styles.input}
-        placeholder="Reset token"
-        placeholderTextColor="#aaa"
-        value={token}
-        onChangeText={setToken}
-        autoCapitalize="none"
-      />
+        <TextInput
+          style={[styles.input, { marginBottom: isCompact ? 8 : 10 }]}
+          placeholder="Reset token"
+          placeholderTextColor="#aaa"
+          value={token}
+          onChangeText={setToken}
+          autoCapitalize="none"
+          accessibilityLabel="Reset token input"
+          accessibilityHint="Enter the reset token from your email"
+        />
 
-      <TextInput
-        style={styles.input}
-        placeholder="New password"
-        placeholderTextColor="#aaa"
-        value={newPassword}
-        onChangeText={setNewPassword}
-        secureTextEntry
-      />
+        <TextInput
+          style={[styles.input, { marginBottom: isCompact ? 8 : 10 }]}
+          placeholder="New password"
+          placeholderTextColor="#aaa"
+          value={newPassword}
+          onChangeText={setNewPassword}
+          secureTextEntry
+          accessibilityLabel="New password input"
+          accessibilityHint="Create a strong password with 10+ characters"
+        />
 
-      <TextInput
-        style={styles.input}
-        placeholder="Confirm new password"
-        placeholderTextColor="#aaa"
-        value={confirmPassword}
-        onChangeText={setConfirmPassword}
-        secureTextEntry
-      />
+        <TextInput
+          style={[styles.input, { marginBottom: isCompact ? 8 : 10 }]}
+          placeholder="Confirm new password"
+          placeholderTextColor="#aaa"
+          value={confirmPassword}
+          onChangeText={setConfirmPassword}
+          secureTextEntry
+          accessibilityLabel="Confirm password input"
+          accessibilityHint="Re-enter your new password"
+        />
 
-      <Text style={styles.hintText}>
-        Use 10+ characters with upper/lowercase, a number, and a special character.
-      </Text>
+        <Text style={[styles.hintText, { marginBottom: isCompact ? 14 : 16 }]}>
+          Use 10+ characters with upper/lowercase, a number, and a special character.
+        </Text>
 
-      <Pressable style={styles.resetButton} onPress={handleReset} disabled={loading} {...webPress(handleReset)}>
-        {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.resetButtonText}>Reset Password</Text>}
-      </Pressable>
+        <Pressable 
+          style={({ pressed }) => [styles.resetButton, { opacity: pressed ? 0.85 : 1 }]} 
+          onPress={handleReset} 
+          disabled={loading} 
+          {...webPress(handleReset)}
+          accessibilityRole="button"
+          accessibilityLabel="Reset password button"
+          accessibilityHint="Resets your password with the new credentials"
+        >
+          {loading ? <ActivityIndicator color="#fff" /> : <Text style={[styles.resetButtonText, { fontSize: isCompact ? 14 : 16 }]}>Reset Password</Text>}
+        </Pressable>
 
-      <Pressable onPress={() => navigation.navigate('Login')} {...webPress(() => navigation.navigate('Login'))}>
-        <Text style={styles.backText}>Back to login</Text>
-      </Pressable>
+        <Pressable onPress={() => navigation.navigate('Login')} {...webPress(() => navigation.navigate('Login'))} accessibilityRole="button" accessibilityLabel="Back to login">
+          <Text style={[styles.backText, { fontSize: isCompact ? 11 : 12 }]}>Back to login</Text>
+        </Pressable>
+      </View>
     </View>
   );
 };
@@ -105,20 +128,20 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: 'center',
-    padding: 20,
+    paddingVertical: 20,
     backgroundColor: '#000',
   },
+  innerContainer: {
+    width: '100%',
+  },
   title: {
-    fontSize: 28,
     fontWeight: 'bold',
     color: '#fff',
-    marginBottom: 40,
     textAlign: 'center',
   },
   input: {
     backgroundColor: '#fff',
     padding: 15,
-    marginBottom: 10,
   },
   hintText: {
     color: '#bbb',

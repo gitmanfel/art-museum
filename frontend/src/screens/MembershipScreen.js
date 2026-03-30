@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, Dimensions, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, Alert, ActivityIndicator, useWindowDimensions } from 'react-native';
 import { useCart } from '../context/CartContext';
 import { getMembershipTiers } from '../services/catalogue';
 
-const { width } = Dimensions.get('window');
-
 const MembershipScreen = ({ navigation }) => {
+  const { width } = useWindowDimensions();
+  const isCompact = width < 380;
+  const isWide = width >= 1024;
   const [tiers, setTiers] = useState([]);
   const [selectedTier, setSelectedTier] = useState(null);
   const [loadingCatalogue, setLoadingCatalogue] = useState(true);
@@ -50,20 +51,20 @@ const MembershipScreen = ({ navigation }) => {
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
       {/* Hero Image Section */}
-      <View style={styles.heroContainer}>
+      <View style={[styles.heroContainer, { height: isCompact ? 280 : isWide ? 380 : 350 }]}>
         <Image 
-          source={{ uri: 'https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80' }} // Still life placeholder
+          source={{ uri: 'https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80' }}
           style={styles.heroImage} 
         />
         <View style={styles.heroOverlay}>
-          <Text style={styles.heroTextPrimary}>Your Museum.</Text>
-          <Text style={styles.heroTextSecondary}>Your Bounty of Experience.</Text>
+          <Text style={[styles.heroTextPrimary, { fontSize: isCompact ? 24 : isWide ? 32 : 28 }]}>Your Museum.</Text>
+          <Text style={[styles.heroTextSecondary, { fontSize: isCompact ? 20 : isWide ? 28 : 24 }]}>Your Bounty of Experience.</Text>
         </View>
       </View>
 
       {/* Tiers Section */}
-      <View style={styles.contentContainer}>
-        <Text style={styles.instructionsText}>
+      <View style={[styles.contentContainer, { paddingHorizontal: isCompact ? 14 : 20 }]}>
+        <Text style={[styles.instructionsText, { fontSize: isCompact ? 12 : 13, marginBottom: isCompact ? 24 : 30 }]}>
           Choose the membership that's the best fit for you. {'\n'}Click on a level to view the full description of benefits.
         </Text>
 
@@ -79,26 +80,34 @@ const MembershipScreen = ({ navigation }) => {
           {tiers.map((tier) => (
             <TouchableOpacity
               key={tier.id}
-              style={[styles.tierRow, selectedTier === tier.id && styles.tierRowSelected]}
+              style={[styles.tierRow, selectedTier === tier.id && styles.tierRowSelected, { paddingVertical: isCompact ? 16 : 20 }]}
               onPress={() => setSelectedTier(tier.id)}
+              activeOpacity={0.75}
+              accessibilityRole="button"
+              accessibilityLabel={`${tier.name} membership at ${tier.price} dollars`}
+              accessibilityHint="Select this membership tier"
             >
               <View>
-                <Text style={styles.tierTitle}>{tier.name} - ${Number(tier.price).toFixed(0)}</Text>
-                <Text style={styles.tierDescription}>${Number(tier.tax_deductible || 0).toFixed(0)} tax deductible</Text>
+                <Text style={[styles.tierTitle, { fontSize: isCompact ? 16 : 18 }]}>{tier.name} - ${Number(tier.price).toFixed(0)}</Text>
+                <Text style={[styles.tierDescription, { fontSize: isCompact ? 11 : 12 }]}>${Number(tier.tax_deductible || 0).toFixed(0)} tax deductible</Text>
               </View>
-              <Text style={styles.chevronIcon}>›</Text>
+              <Text style={[styles.chevronIcon, { fontSize: isCompact ? 20 : 24 }]}>›</Text>
             </TouchableOpacity>
           ))}
         </View>
 
         <TouchableOpacity 
-          style={styles.joinButton}
+          style={[styles.joinButton, { paddingVertical: isCompact ? 12 : 15, marginBottom: isCompact ? 16 : 20 }]}
           onPress={handleJoin}
           disabled={loading || loadingCatalogue || tiers.length === 0}
+          activeOpacity={0.85}
+          accessibilityRole="button"
+          accessibilityLabel="Join membership"
+          accessibilityHint="Adds selected membership to your cart"
         >
           {loading
             ? <ActivityIndicator color="#fff" />
-            : <Text style={styles.joinButtonText}>Join Today</Text>
+            : <Text style={[styles.joinButtonText, { fontSize: isCompact ? 14 : 15 }]}>Join Today</Text>
           }
         </TouchableOpacity>
       </View>
@@ -113,10 +122,9 @@ const styles = StyleSheet.create({
   },
   heroContainer: {
     position: 'relative',
-    height: 350,
   },
   heroImage: {
-    width: width,
+    width: '100%',
     height: '100%',
     resizeMode: 'cover',
   },

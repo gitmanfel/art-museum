@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { View, Text, StyleSheet, FlatList, ActivityIndicator, Pressable } from 'react-native';
+import { View, Text, StyleSheet, FlatList, ActivityIndicator, Pressable, useWindowDimensions } from 'react-native';
 import { getMyOrders } from '../services/checkout';
 
 const formatCurrency = (amountCents, currency = 'usd') => {
@@ -13,34 +13,37 @@ const formatDate = (unixEpoch) => {
   return new Date(Number(unixEpoch) * 1000).toLocaleString();
 };
 
-const OrderCard = ({ order }) => (
-  <View style={styles.card}>
+const OrderCard = ({ order, isCompact }) => (
+  <View style={[styles.card, { padding: isCompact ? 12 : 14, marginBottom: isCompact ? 10 : 10 }]}>
     <View style={styles.row}>
-      <Text style={styles.label}>Order Ref</Text>
-      <Text style={styles.reference}>{order.payment_intent_id}</Text>
+      <Text style={[styles.label, { fontSize: isCompact ? 11 : 12 }]}>Order Ref</Text>
+      <Text style={[styles.reference, { fontSize: isCompact ? 11 : 12 }]}>{order.payment_intent_id}</Text>
     </View>
     <View style={styles.row}>
-      <Text style={styles.label}>Amount</Text>
-      <Text style={styles.value}>{formatCurrency(order.amount_cents, order.currency)}</Text>
+      <Text style={[styles.label, { fontSize: isCompact ? 11 : 12 }]}>Amount</Text>
+      <Text style={[styles.value, { fontSize: isCompact ? 12 : 13 }]}>{formatCurrency(order.amount_cents, order.currency)}</Text>
     </View>
     <View style={styles.row}>
-      <Text style={styles.label}>Provider</Text>
-      <Text style={styles.value}>{String(order.provider || 'unknown').toUpperCase()}</Text>
+      <Text style={[styles.label, { fontSize: isCompact ? 11 : 12 }]}>Provider</Text>
+      <Text style={[styles.value, { fontSize: isCompact ? 12 : 13 }]}>{String(order.provider || 'unknown').toUpperCase()}</Text>
     </View>
     <View style={styles.row}>
-      <Text style={styles.label}>Status</Text>
-      <Text style={[styles.value, order.status === 'paid' ? styles.success : styles.pending]}>
+      <Text style={[styles.label, { fontSize: isCompact ? 11 : 12 }]}>Status</Text>
+      <Text style={[styles.value, order.status === 'paid' ? styles.success : styles.pending, { fontSize: isCompact ? 12 : 13 }]}>
         {String(order.status || 'processing').toUpperCase()}
       </Text>
     </View>
     <View style={styles.row}>
-      <Text style={styles.label}>Placed At</Text>
-      <Text style={styles.value}>{formatDate(order.created_at)}</Text>
+      <Text style={[styles.label, { fontSize: isCompact ? 11 : 12 }]}>Placed At</Text>
+      <Text style={[styles.value, { fontSize: isCompact ? 11 : 12 }]}>{formatDate(order.created_at)}</Text>
     </View>
   </View>
 );
 
 const OrdersScreen = () => {
+  const { width } = useWindowDimensions();
+  const isCompact = width < 380;
+  const isWide = width >= 1024;
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -71,29 +74,35 @@ const OrdersScreen = () => {
   }
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>My Orders</Text>
-      <Text style={styles.subtitle}>All your placed orders appear here.</Text>
+    <View style={[styles.container, { paddingHorizontal: isCompact ? 14 : 20 }]}>
+      <Text style={[styles.title, { fontSize: isCompact ? 24 : isWide ? 34 : 28, marginTop: isCompact ? 14 : 18 }]}>My Orders</Text>
+      <Text style={[styles.subtitle, { fontSize: isCompact ? 12 : 13, marginBottom: isCompact ? 12 : 14 }]}>All your placed orders appear here.</Text>
 
-      {error ? <Text style={styles.errorText}>{error}</Text> : null}
+      {error ? <Text style={[styles.errorText, { fontSize: isCompact ? 12 : 13 }]}>{error}</Text> : null}
 
       {orders.length === 0 ? (
         <View style={styles.centeredEmpty}>
-          <Text style={styles.emptyTitle}>No orders yet</Text>
-          <Text style={styles.emptyText}>Once you place an order, it will show up on this page.</Text>
+          <Text style={[styles.emptyTitle, { fontSize: isCompact ? 18 : 20 }]}>No orders yet</Text>
+          <Text style={[styles.emptyText, { fontSize: isCompact ? 12 : 13 }]}>Once you place an order, it will show up on this page.</Text>
         </View>
       ) : (
         <FlatList
           data={orders}
           keyExtractor={(item) => String(item.id)}
-          renderItem={({ item }) => <OrderCard order={item} />}
-          contentContainerStyle={styles.list}
+          renderItem={({ item }) => <OrderCard order={item} isCompact={isCompact} />}
+          contentContainerStyle={[styles.list, isWide && { maxWidth: 800 }]}
           showsVerticalScrollIndicator={false}
         />
       )}
 
-      <Pressable style={styles.refreshButton} onPress={loadOrders}>
-        <Text style={styles.refreshButtonText}>Refresh Orders</Text>
+      <Pressable 
+        style={({ pressed }) => [styles.refreshButton, { opacity: pressed ? 0.85 : 1, marginBottom: isCompact ? 14 : 20 }]} 
+        onPress={loadOrders}
+        accessibilityRole="button"
+        accessibilityLabel="Refresh orders"
+        accessibilityHint="Reloads your order list"
+      >
+        <Text style={[styles.refreshButtonText, { fontSize: isCompact ? 14 : 15 }]}>Refresh Orders</Text>
       </Pressable>
     </View>
   );
@@ -103,7 +112,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
-    paddingHorizontal: 20,
     paddingTop: 18,
     paddingBottom: 14,
   },

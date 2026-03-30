@@ -1,3 +1,11 @@
+/**
+ * Authentication Controller
+ *
+ * Handles registration, login, password reset, and profile endpoints.
+ * All sensitive operations are logged and validated.
+ *
+ * SECURITY NOTE: Never log plaintext passwords or tokens. Ensure JWT_SECRET is set securely in production.
+ */
 const bcrypt = require('bcrypt');
 const crypto = require('crypto');
 const jwt = require('jsonwebtoken');

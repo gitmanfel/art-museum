@@ -1,9 +1,15 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert, ActivityIndicator, useWindowDimensions } from 'react-native';
 import { useCart } from '../context/CartContext';
 import { getTicketTypes } from '../services/catalogue';
 
+const formatTicketPrice = (price) => `$${Number(price).toFixed(2)}`;
+
 const TicketsScreen = ({ navigation }) => {
+  const { width } = useWindowDimensions();
+  const isCompact = width < 380;
+  const isWide = width >= 1024;
+
   const [selectedDate, setSelectedDate] = useState('Tomorrow');
   const [ticketTypes, setTicketTypes] = useState([]);
   const [counts, setCounts] = useState({});
@@ -57,17 +63,32 @@ const TicketsScreen = ({ navigation }) => {
   };
 
   const renderCounterRow = (ticket) => (
-    <View key={ticket.id} style={styles.counterRow}>
-      <View>
+    <View key={ticket.id} style={[styles.counterRow, isCompact && styles.counterRowCompact]}>
+      <View style={styles.counterInfo}>
+        <Text style={styles.counterPrice}>{formatTicketPrice(ticket.price)}</Text>
         <Text style={styles.counterTitle}>{ticket.name}</Text>
         {ticket.description ? <Text style={styles.counterSubtitle}>{ticket.description}</Text> : null}
       </View>
       <View style={styles.quantitySelector}>
-        <TouchableOpacity onPress={() => decrement(ticket.id)} style={styles.qtyBtn}>
+        <TouchableOpacity
+          onPress={() => decrement(ticket.id)}
+          style={styles.qtyBtn}
+          activeOpacity={0.8}
+          accessibilityRole="button"
+          accessibilityLabel={`Decrease ${ticket.name} ticket quantity`}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+        >
           <Text style={styles.qtyBtnText}>-</Text>
         </TouchableOpacity>
         <Text style={styles.qtyText}>{counts[ticket.id] || 0}</Text>
-        <TouchableOpacity onPress={() => increment(ticket.id)} style={styles.qtyBtn}>
+        <TouchableOpacity
+          onPress={() => increment(ticket.id)}
+          style={styles.qtyBtn}
+          activeOpacity={0.8}
+          accessibilityRole="button"
+          accessibilityLabel={`Increase ${ticket.name} ticket quantity`}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+        >
           <Text style={styles.qtyBtnText}>+</Text>
         </TouchableOpacity>
       </View>
@@ -83,9 +104,9 @@ const TicketsScreen = ({ navigation }) => {
   }
 
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.titleText}>Skip the Line.{'\n'}Purchase Tickets.</Text>
+    <ScrollView style={[styles.container, isCompact && styles.containerCompact, isWide && styles.containerWide]}>
+      <View style={[styles.header, isCompact && styles.headerCompact]}>
+        <Text style={[styles.titleText, isCompact && styles.titleTextCompact]}>Skip the Line.{'\n'}Purchase Tickets.</Text>
         <Text style={styles.subtitleText}>All exhibitions, audio tours, and films{'\n'}included in the price of admission.</Text>
       </View>
 
@@ -96,6 +117,9 @@ const TicketsScreen = ({ navigation }) => {
             key={day} 
             onPress={() => setSelectedDate(day)}
             style={styles.dateOption}
+            activeOpacity={0.8}
+            accessibilityRole="button"
+            accessibilityLabel={`Select visit date ${day}`}
           >
             <Text style={[
               styles.dateText, 
@@ -107,7 +131,7 @@ const TicketsScreen = ({ navigation }) => {
         ))}
       </View>
 
-      <View style={styles.dateInfoBox}>
+      <View style={[styles.dateInfoBox, isCompact && styles.dateInfoBoxCompact]}>
         <Text style={styles.dateInfoPrimary}>March 22, 2016</Text>
         <Text style={styles.dateInfoSecondary}>Open 10:30am-5:30pm</Text>
       </View>
@@ -121,13 +145,16 @@ const TicketsScreen = ({ navigation }) => {
       {/* Total Section */}
       <View style={styles.totalContainer}>
         <Text style={styles.totalLabel}>Total</Text>
-        <Text style={styles.totalValue}>${calculateTotal()}</Text>
+        <Text style={styles.totalValue}>{formatTicketPrice(calculateTotal())}</Text>
       </View>
 
       {/* Action Button */}
       <TouchableOpacity 
-        style={styles.paymentButton}
+        style={[styles.paymentButton, isCompact && styles.paymentButtonCompact]}
         disabled={loading || calculateTotal() === 0}
+        activeOpacity={0.85}
+        accessibilityRole="button"
+        accessibilityLabel="Continue to payment"
         onPress={async () => {
           const entries = Object.entries(counts).filter(([, qty]) => qty > 0);
           if (entries.length === 0) {
@@ -163,6 +190,14 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     padding: 20,
   },
+  containerCompact: {
+    padding: 14,
+  },
+  containerWide: {
+    maxWidth: 880,
+    width: '100%',
+    alignSelf: 'center',
+  },
   loadingContainer: {
     flex: 1,
     alignItems: 'center',
@@ -176,7 +211,10 @@ const styles = StyleSheet.create({
   },
   header: {
     marginTop: 20,
-    marginBottom: 30,
+    marginBottom: 24,
+  },
+  headerCompact: {
+    marginTop: 10,
   },
   titleText: {
     fontSize: 28,
@@ -184,6 +222,10 @@ const styles = StyleSheet.create({
     color: '#000',
     lineHeight: 34,
     marginBottom: 10,
+  },
+  titleTextCompact: {
+    fontSize: 24,
+    lineHeight: 30,
   },
   subtitleText: {
     fontSize: 14,
@@ -193,26 +235,42 @@ const styles = StyleSheet.create({
   dateSelectorContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
-    paddingBottom: 15,
+    borderWidth: 1,
+    borderColor: '#eadfce',
+    borderRadius: 14,
+    paddingVertical: 8,
+    paddingHorizontal: 6,
   },
   dateOption: {
     flex: 1,
     alignItems: 'center',
   },
   dateText: {
-    fontSize: 16,
-    color: '#ccc',
+    fontSize: 14,
+    color: '#9d8b78',
+    fontWeight: '600',
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderRadius: 999,
   },
   dateTextActive: {
-    color: '#000',
+    color: '#1d1a17',
     fontWeight: 'bold',
+    backgroundColor: '#f4e6d8',
   },
   dateInfoBox: {
     alignItems: 'center',
-    paddingVertical: 20,
-    marginBottom: 10,
+    paddingVertical: 16,
+    marginTop: 14,
+    marginBottom: 14,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: '#eee2d4',
+    backgroundColor: '#fdf8f2',
+  },
+  dateInfoBoxCompact: {
+    marginTop: 12,
+    marginBottom: 12,
   },
   dateInfoPrimary: {
     fontSize: 14,
@@ -230,33 +288,55 @@ const styles = StyleSheet.create({
   counterRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 30,
+    alignItems: 'flex-start',
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#ede0d2',
+    backgroundColor: '#fffaf5',
+    borderRadius: 16,
+    paddingVertical: 14,
+    paddingHorizontal: 14,
+  },
+  counterRowCompact: {
+    marginBottom: 10,
+  },
+  counterInfo: {
+    flex: 1,
+    paddingRight: 10,
+  },
+  counterPrice: {
+    color: '#98521d',
+    fontSize: 11,
+    fontWeight: '700',
+    marginBottom: 5,
   },
   counterTitle: {
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: 'bold',
-    color: '#000',
+    color: '#17120f',
   },
   counterSubtitle: {
     fontSize: 12,
-    color: '#aaa',
-    marginTop: 2,
+    color: '#6c6259',
+    marginTop: 4,
+    lineHeight: 17,
   },
   quantitySelector: {
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#eee',
-    borderRadius: 4,
+    borderColor: '#decdbd',
+    borderRadius: 10,
+    backgroundColor: '#fff',
   },
   qtyBtn: {
-    paddingHorizontal: 15,
-    paddingVertical: 10,
+    paddingHorizontal: 13,
+    paddingVertical: 8,
   },
   qtyBtnText: {
     fontSize: 18,
-    color: '#ccc',
+    color: '#85522f',
+    fontWeight: '700',
   },
   qtyText: {
     fontSize: 16,
@@ -268,9 +348,12 @@ const styles = StyleSheet.create({
   totalContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    borderTopWidth: 2,
-    borderTopColor: '#ff4c4c',
-    paddingTop: 15,
+    borderWidth: 1,
+    borderColor: '#f0d6bf',
+    backgroundColor: '#fff5ea',
+    borderRadius: 14,
+    paddingVertical: 14,
+    paddingHorizontal: 14,
     marginBottom: 30,
   },
   totalLabel: {
@@ -286,8 +369,11 @@ const styles = StyleSheet.create({
     backgroundColor: '#ff4c4c',
     paddingVertical: 15,
     alignItems: 'center',
-    borderRadius: 4,
+    borderRadius: 12,
     marginBottom: 40, // extra padding for bottom scrolling
+  },
+  paymentButtonCompact: {
+    marginBottom: 24,
   },
   paymentButtonText: {
     color: '#fff',

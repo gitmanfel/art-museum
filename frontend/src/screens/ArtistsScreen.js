@@ -1,7 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { View, Text, StyleSheet, Image, FlatList, Dimensions, TouchableOpacity } from 'react-native';
-
-const { width } = Dimensions.get('window');
+import { View, Text, StyleSheet, Image, FlatList, TouchableOpacity, useWindowDimensions } from 'react-native';
 
 const ARTISTS = [
   {
@@ -71,19 +69,27 @@ const ARTISTS = [
   },
 ];
 
-const CARD_WIDTH = (width - 48) / 2;
-const PAGE_SIZE = 4;
+const formatWorkCount = (count) => `${count} ${count === 1 ? 'work' : 'works'}`;
 
 const ArtistsScreen = () => {
+  const { width: windowWidth } = useWindowDimensions();
+  const isCompact = windowWidth < 380;
+  const isWide = windowWidth >= 1024;
+  const columns = isCompact ? 1 : isWide ? 3 : 2;
+  const horizontalPadding = 32;
+  const gutterWidth = (columns - 1) * 12;
+  const cardWidth = (windowWidth - horizontalPadding - gutterWidth) / columns;
+  const pageSize = columns * 2;
+
   const [currentPage, setCurrentPage] = useState(0);
   const [selectedArtistId, setSelectedArtistId] = useState(ARTISTS[0]?.id || null);
   const [selectedArtworkId, setSelectedArtworkId] = useState(null);
 
-  const totalPages = Math.ceil(ARTISTS.length / PAGE_SIZE);
+  const totalPages = Math.ceil(ARTISTS.length / pageSize);
 
   const pagedArtists = useMemo(
-    () => ARTISTS.slice(currentPage * PAGE_SIZE, (currentPage + 1) * PAGE_SIZE),
-    [currentPage]
+    () => ARTISTS.slice(currentPage * pageSize, (currentPage + 1) * pageSize),
+    [currentPage, pageSize]
   );
 
   useEffect(() => {
@@ -108,30 +114,45 @@ const ArtistsScreen = () => {
 
   const renderItem = ({ item }) => (
     <TouchableOpacity
-      style={[styles.card, selectedArtistId === item.id && styles.cardSelected]}
+      style={[styles.card, { width: cardWidth }, selectedArtistId === item.id && styles.cardSelected]}
       onPress={() => setSelectedArtistId(item.id)}
+      activeOpacity={0.86}
+      accessibilityRole="button"
+      accessibilityLabel={`Open artist ${item.name}`}
     >
-      <Image source={{ uri: item.image }} style={styles.cardImage} />
+      <Image source={{ uri: item.image }} style={[styles.cardImage, isCompact && styles.cardImageCompact]} />
+      <View style={styles.cardBadge}>
+        <Text style={styles.cardBadgeText}>{item.medium}</Text>
+      </View>
       <View style={styles.cardBody}>
         <Text style={styles.cardName}>{item.name}</Text>
         <Text style={styles.cardDates}>{item.dates}</Text>
-        <Text style={styles.cardMedium}>{item.medium}</Text>
-        <Text style={styles.cardAction}>View details</Text>
+        <Text style={styles.cardBio} numberOfLines={isCompact ? 4 : 3}>{item.bio}</Text>
+        <View style={styles.cardFooter}>
+          <Text style={styles.cardMedium}>{formatWorkCount(item.works.length)}</Text>
+          <Text style={styles.cardAction}>Open profile</Text>
+        </View>
       </View>
     </TouchableOpacity>
   );
 
   return (
     <View style={styles.container}>
-      <View style={styles.headerSection}>
-        <Text style={styles.headerTitle}>Artists &{'\n'}Artworks</Text>
+      <View style={[styles.headerSection, isWide && styles.headerSectionWide]}>
+        <Text style={[styles.headerTitle, isCompact && styles.headerTitleCompact]}>
+          Artists &{'\n'}Artworks
+        </Text>
         <Text style={styles.headerSub}>Works from the permanent collection</Text>
       </View>
-      <View style={styles.paginationBar}>
+      <View style={[styles.paginationBar, isWide && styles.paginationBarWide]}>
         <TouchableOpacity
           style={[styles.pageBtn, currentPage === 0 && styles.pageBtnDisabled]}
           disabled={currentPage === 0}
           onPress={() => setCurrentPage((page) => Math.max(0, page - 1))}
+          activeOpacity={0.82}
+          accessibilityRole="button"
+          accessibilityLabel="Go to previous artists page"
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
         >
           <Text style={styles.pageBtnText}>Previous</Text>
         </TouchableOpacity>
@@ -140,41 +161,79 @@ const ArtistsScreen = () => {
           style={[styles.pageBtn, currentPage >= totalPages - 1 && styles.pageBtnDisabled]}
           disabled={currentPage >= totalPages - 1}
           onPress={() => setCurrentPage((page) => Math.min(totalPages - 1, page + 1))}
+          activeOpacity={0.82}
+          accessibilityRole="button"
+          accessibilityLabel="Go to next artists page"
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
         >
           <Text style={styles.pageBtnText}>Next</Text>
         </TouchableOpacity>
       </View>
       <FlatList
+        key={`artists-${columns}`}
         data={pagedArtists}
         renderItem={renderItem}
         keyExtractor={item => item.id}
-        numColumns={2}
-        columnWrapperStyle={styles.row}
-        contentContainerStyle={styles.grid}
+        numColumns={columns}
+        columnWrapperStyle={columns === 2 ? styles.row : undefined}
+        contentContainerStyle={[styles.grid, isWide && styles.gridWide]}
         showsVerticalScrollIndicator={false}
         ListFooterComponent={
           selectedArtist ? (
             <View style={styles.reviewPanel}>
-              <Text style={styles.reviewTitle}>{selectedArtist.name}</Text>
-              <Text style={styles.reviewDates}>{selectedArtist.dates} • {selectedArtist.medium}</Text>
+              <Image source={{ uri: selectedArtist.image }} style={[styles.reviewImage, isWide && styles.reviewImageWide]} />
+              <View style={styles.reviewHeaderRow}>
+                <View style={styles.reviewHeaderMain}>
+                  <Text style={styles.reviewTitle}>{selectedArtist.name}</Text>
+                  <Text style={styles.reviewDates}>{selectedArtist.dates} • {selectedArtist.medium}</Text>
+                </View>
+                <View style={styles.reviewCountPill}>
+                  <Text style={styles.reviewCountText}>{formatWorkCount(selectedArtist.works.length)}</Text>
+                </View>
+              </View>
               <Text style={styles.reviewBio}>{selectedArtist.bio}</Text>
-              <Text style={styles.workHeading}>Featured Works</Text>
-              {selectedArtist.works.map((work) => {
-                const active = selectedArtwork?.id === work.id;
-                return (
-                  <TouchableOpacity
-                    key={work.id}
-                    onPress={() => setSelectedArtworkId(work.id)}
-                    style={[styles.workItemBtn, active && styles.workItemBtnActive]}
-                  >
-                    <Text style={[styles.workItem, active && styles.workItemActive]}>{work.title}</Text>
-                  </TouchableOpacity>
-                );
-              })}
+              <View style={[styles.reviewStatsRow, isCompact && styles.reviewStatsRowCompact]}>
+                <View style={[styles.reviewStatCard, isCompact && styles.reviewStatCardCompact]}>
+                  <Text style={styles.reviewStatLabel}>Discipline</Text>
+                  <Text style={styles.reviewStatValue}>{selectedArtist.medium}</Text>
+                </View>
+                <View style={[styles.reviewStatCard, isCompact && styles.reviewStatCardCompact]}>
+                  <Text style={styles.reviewStatLabel}>Dates</Text>
+                  <Text style={styles.reviewStatValue}>{selectedArtist.dates}</Text>
+                </View>
+              </View>
+              <Text style={styles.workHeading}>Featured Artworks</Text>
+              <View style={styles.workGrid}>
+                {selectedArtist.works.map((work) => {
+                  const active = selectedArtwork?.id === work.id;
+                  const workButtonStyle = isCompact
+                    ? styles.workItemBtnCompact
+                    : isWide
+                      ? styles.workItemBtnWide
+                      : null;
+                  return (
+                    <TouchableOpacity
+                      key={work.id}
+                      onPress={() => setSelectedArtworkId(work.id)}
+                      style={[styles.workItemBtn, workButtonStyle, active && styles.workItemBtnActive]}
+                      activeOpacity={0.85}
+                      accessibilityRole="button"
+                      accessibilityLabel={`Select artwork ${work.title}`}
+                    >
+                      <Text style={[styles.workItem, active && styles.workItemActive]} numberOfLines={2}>{work.title}</Text>
+                      <Text style={[styles.workItemMeta, active && styles.workItemMetaActive]}>{work.year}</Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
               {selectedArtwork ? (
                 <View style={styles.artworkDetailPanel}>
+                  <Text style={styles.artworkDetailEyebrow}>Selected artwork</Text>
                   <Text style={styles.artworkDetailTitle}>{selectedArtwork.title}</Text>
                   <Text style={styles.artworkDetailMeta}>{selectedArtwork.year} • {selectedArtwork.medium}</Text>
+                  <Text style={styles.artworkDetailBody}>
+                    Presented in the museum artist spotlight as a representative work for {selectedArtist.name}.
+                  </Text>
                 </View>
               ) : null}
             </View>
@@ -188,7 +247,13 @@ const ArtistsScreen = () => {
 const styles = StyleSheet.create({
   container:    { flex: 1, backgroundColor: '#fff' },
   headerSection:{ padding: 20, paddingBottom: 10 },
+  headerSectionWide: {
+    width: '100%',
+    maxWidth: 1080,
+    alignSelf: 'center',
+  },
   headerTitle:  { fontSize: 28, fontWeight: 'bold', color: '#000', lineHeight: 34, marginBottom: 6 },
+  headerTitleCompact: { fontSize: 24, lineHeight: 30 },
   headerSub:    { fontSize: 13, color: '#aaa' },
   paginationBar: {
     flexDirection: 'row',
@@ -196,6 +261,11 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingBottom: 8,
+  },
+  paginationBarWide: {
+    width: '100%',
+    maxWidth: 1080,
+    alignSelf: 'center',
   },
   pageBtn: {
     borderWidth: 1,
@@ -217,87 +287,228 @@ const styles = StyleSheet.create({
     color: '#666',
   },
   grid:         { paddingHorizontal: 16, paddingBottom: 20 },
+  gridWide: {
+    width: '100%',
+    maxWidth: 1080,
+    alignSelf: 'center',
+  },
   row:          { justifyContent: 'space-between', marginBottom: 20 },
-  card:         { width: CARD_WIDTH },
-  cardSelected: { opacity: 0.85 },
+  card: {
+    borderRadius: 18,
+    backgroundColor: '#fffdf8',
+    borderWidth: 1,
+    borderColor: '#f0d9c7',
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOpacity: 0.08,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 3,
+  },
+  cardSelected: {
+    borderColor: '#d4824b',
+    backgroundColor: '#fff7ef',
+  },
   cardImage:    { width: '100%', height: 180, resizeMode: 'cover', backgroundColor: '#f0f0f0' },
-  cardBody:     { paddingTop: 8 },
-  cardName:     { fontSize: 13, fontWeight: 'bold', color: '#000', marginBottom: 2 },
-  cardDates:    { fontSize: 11, color: '#aaa', marginBottom: 1 },
-  cardMedium:   { fontSize: 11, color: '#ff4c4c', fontWeight: '600' },
+  cardImageCompact: { height: 210 },
+  cardBadge: {
+    position: 'absolute',
+    top: 12,
+    left: 12,
+    backgroundColor: 'rgba(17, 17, 17, 0.78)',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 999,
+  },
+  cardBadgeText: {
+    color: '#fff',
+    fontSize: 10,
+    fontWeight: '700',
+  },
+  cardBody:     { padding: 12 },
+  cardName:     { fontSize: 16, fontWeight: '700', color: '#161616', marginBottom: 4 },
+  cardDates:    { fontSize: 11, color: '#8a6d58', marginBottom: 6 },
+  cardBio: {
+    fontSize: 12,
+    color: '#51443a',
+    lineHeight: 18,
+    minHeight: 54,
+  },
+  cardFooter: {
+    marginTop: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  cardMedium:   { fontSize: 11, color: '#b2571c', fontWeight: '700' },
   cardAction: {
-    marginTop: 6,
     fontSize: 11,
-    color: '#333',
-    textDecorationLine: 'underline',
+    color: '#2f3c4a',
+    fontWeight: '700',
   },
   reviewPanel: {
     marginTop: 8,
-    backgroundColor: '#fff6f6',
+    backgroundColor: '#fffaf3',
     borderWidth: 1,
-    borderColor: '#ffd1d1',
-    borderRadius: 8,
-    padding: 14,
+    borderColor: '#f2dcc8',
+    borderRadius: 20,
+    padding: 16,
+  },
+  reviewImage: {
+    width: '100%',
+    height: 220,
+    borderRadius: 16,
+    marginBottom: 14,
+    backgroundColor: '#efe8e0',
+  },
+  reviewImageWide: {
+    height: 300,
+  },
+  reviewHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    gap: 10,
+  },
+  reviewHeaderMain: {
+    flex: 1,
   },
   reviewTitle: {
-    fontSize: 18,
+    fontSize: 22,
     fontWeight: '700',
     color: '#111',
   },
   reviewDates: {
     marginTop: 4,
-    color: '#ff4c4c',
+    color: '#b2571c',
     fontWeight: '600',
     fontSize: 12,
+  },
+  reviewCountPill: {
+    backgroundColor: '#f3e1d2',
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+  },
+  reviewCountText: {
+    color: '#7e4f2a',
+    fontSize: 11,
+    fontWeight: '700',
   },
   reviewBio: {
     marginTop: 8,
     color: '#444',
-    lineHeight: 18,
+    lineHeight: 20,
     fontSize: 13,
+  },
+  reviewStatsRow: {
+    flexDirection: 'row',
+    gap: 10,
+    marginTop: 14,
+  },
+  reviewStatsRowCompact: {
+    flexDirection: 'column',
+  },
+  reviewStatCard: {
+    flex: 1,
+    backgroundColor: '#ffffff',
+    borderRadius: 14,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: '#f1ddcc',
+  },
+  reviewStatCardCompact: {
+    flex: 0,
+  },
+  reviewStatLabel: {
+    fontSize: 10,
+    color: '#8e7968',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  reviewStatValue: {
+    marginTop: 4,
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#2a251f',
   },
   workHeading: {
-    marginTop: 12,
+    marginTop: 16,
     fontSize: 13,
     fontWeight: '700',
     color: '#222',
+  },
+  workGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+    marginTop: 10,
   },
   workItem: {
-    color: '#444',
+    color: '#2a251f',
     fontSize: 12,
+    fontWeight: '700',
   },
   workItemBtn: {
-    marginTop: 6,
+    width: '48%',
     borderWidth: 1,
-    borderColor: '#ffd1d1',
-    borderRadius: 999,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    alignSelf: 'flex-start',
+    borderColor: '#ecd4be',
+    borderRadius: 16,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    backgroundColor: '#fff',
+  },
+  workItemBtnCompact: {
+    width: '100%',
+  },
+  workItemBtnWide: {
+    width: '31.5%',
   },
   workItemBtnActive: {
-    borderColor: '#ff4c4c',
-    backgroundColor: '#ffe9e9',
+    borderColor: '#d4824b',
+    backgroundColor: '#fff1e3',
   },
   workItemActive: {
-    color: '#c13030',
+    color: '#8c4918',
     fontWeight: '700',
+  },
+  workItemMeta: {
+    marginTop: 6,
+    fontSize: 11,
+    color: '#7f756d',
+  },
+  workItemMetaActive: {
+    color: '#a05622',
   },
   artworkDetailPanel: {
-    marginTop: 10,
-    borderTopWidth: 1,
-    borderTopColor: '#ffd1d1',
-    paddingTop: 10,
+    marginTop: 16,
+    backgroundColor: '#1d1b19',
+    borderRadius: 18,
+    padding: 16,
+  },
+  artworkDetailEyebrow: {
+    color: '#cba98d',
+    fontSize: 10,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
   },
   artworkDetailTitle: {
-    fontSize: 13,
+    marginTop: 8,
+    fontSize: 18,
     fontWeight: '700',
-    color: '#222',
+    color: '#fff7eb',
   },
   artworkDetailMeta: {
-    marginTop: 2,
+    marginTop: 4,
     fontSize: 12,
-    color: '#666',
+    color: '#f0c6a8',
+  },
+  artworkDetailBody: {
+    marginTop: 10,
+    fontSize: 12,
+    color: '#eadfd6',
+    lineHeight: 18,
   },
 });
 

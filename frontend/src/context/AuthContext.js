@@ -28,8 +28,13 @@ export const AuthProvider = ({ children }) => {
     refreshProfile();
   }, [refreshProfile]);
 
+  // Memoize context value to prevent unnecessary re-renders
+  const contextValue = React.useMemo(
+    () => ({ user, setUser, refreshProfile, clearSession, loadingProfile }),
+    [user, refreshProfile, clearSession, loadingProfile]
+  );
   return (
-    <AuthContext.Provider value={{ user, setUser, refreshProfile, clearSession, loadingProfile }}>
+    <AuthContext.Provider value={contextValue}>
       {children}
     </AuthContext.Provider>
   );
