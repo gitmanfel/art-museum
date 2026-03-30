@@ -24,6 +24,8 @@ const expectedMinimums = {
 
 try {
   const db = getDb();
+  let hasLowCounts = false;
+
   console.log('Museum Demo Health Check');
   console.log('========================');
 
@@ -31,10 +33,18 @@ try {
     const row = db.prepare(`SELECT COUNT(*) AS count FROM ${tableName}`).get();
     const count = row.count;
     const status = count >= expectedMinimums[tableName] ? 'OK' : 'LOW';
+    if (status === 'LOW') {
+      hasLowCounts = true;
+    }
     console.log(`${status.padEnd(3)} | ${label.padEnd(22)} | ${count}`);
   });
 
   closeDb();
+
+  if (hasLowCounts) {
+    console.error('Demo health check failed: one or more categories are below minimum thresholds.');
+    process.exitCode = 1;
+  }
 } catch (error) {
   console.error('Health check failed:', error.message);
   process.exitCode = 1;

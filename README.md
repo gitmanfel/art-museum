@@ -9,6 +9,7 @@
 
 - From repo root, run seeded-data validation:
 	- `npm run demo:health`
+	- Fails with a non-zero exit code if any demo category drops below minimum thresholds.
 - Run complete demo verification in one command:
 	- `npm run verify:demo`
 - Run backend tests:
