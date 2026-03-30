@@ -168,6 +168,31 @@ jobs:
         run: npm test
         working-directory: ./frontend
 
+  demo-verify:
+    name: Demo Verify (Root Command)
+    needs: changes
+    if: needs.changes.outputs.backend == 'true' || needs.changes.outputs.frontend == 'true' || needs.changes.outputs.shared == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18.x'
+          cache: 'npm'
+          cache-dependency-path: |
+            backend/package-lock.json
+            frontend/package-lock.json
+      - name: Install Backend Dependencies
+        run: npm ci
+        working-directory: ./backend
+      - name: Install Frontend Dependencies
+        run: npm ci
+        working-directory: ./frontend
+      - name: Run One-Shot Demo Verification
+        run: npm run verify:demo
+
   ci-status:
     name: CI Status
     if: always()
@@ -178,6 +203,7 @@ jobs:
       - full-config-guard-negative
       - full-backend-gates
       - full-frontend-tests
+      - demo-verify
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -188,14 +214,16 @@ jobs:
           FULL_NEGATIVE: ${{ needs.full-config-guard-negative.result }}
           FULL_BACKEND: ${{ needs.full-backend-gates.result }}
           FULL_FRONTEND: ${{ needs.full-frontend-tests.result }}
+          DEMO_VERIFY: ${{ needs.demo-verify.result }}
         run: |
           echo "quick-backend-tests=${QUICK_BACKEND}"
           echo "quick-frontend-tests=${QUICK_FRONTEND}"
           echo "full-config-guard-negative=${FULL_NEGATIVE}"
           echo "full-backend-gates=${FULL_BACKEND}"
           echo "full-frontend-tests=${FULL_FRONTEND}"
+          echo "demo-verify=${DEMO_VERIFY}"
 
-          for result in "$QUICK_BACKEND" "$QUICK_FRONTEND" "$FULL_NEGATIVE" "$FULL_BACKEND" "$FULL_FRONTEND"; do
+          for result in "$QUICK_BACKEND" "$QUICK_FRONTEND" "$FULL_NEGATIVE" "$FULL_BACKEND" "$FULL_FRONTEND" "$DEMO_VERIFY"; do
             if [ "$result" != "success" ] && [ "$result" != "skipped" ]; then
               echo "A required CI job failed or was cancelled."
               exit 1
