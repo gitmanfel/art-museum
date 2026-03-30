@@ -5,7 +5,9 @@ const userRepo = require('../db/userRepository');
 const orderRepo = require('../db/orderRepository');
 const catalogueRepo = require('../db/catalogueRepository');
 const adminAuditRepo = require('../db/adminAuditRepository');
+const contactRepo = require('../db/contactRepository');
 const { getMetrics } = require('../services/monitoring');
+const { sendMail } = require('../services/mailing');
 
 exports.getOverview = (req, res) => {
   const userCounts = userRepo.getUserCounts();
@@ -47,6 +49,70 @@ exports.getAuditLogs = (req, res) => {
     search: req.query.search,
   });
   return res.status(200).json({ auditLogs: result.rows, meta: result.meta });
+};
+
+exports.getContactMessages = (req, res) => {
+  const result = contactRepo.listMessagesPaged({
+    page: req.query.page,
+    pageSize: req.query.pageSize,
+    search: req.query.search,
+  });
+  return res.status(200).json({ messages: result.rows, meta: result.meta });
+};
+
+exports.getNewsletterSubscribers = (req, res) => {
+  const result = contactRepo.listSubscribersPaged({
+    page: req.query.page,
+    pageSize: req.query.pageSize,
+    search: req.query.search,
+  });
+  return res.status(200).json({ subscribers: result.rows, meta: result.meta });
+};
+
+exports.replyToContactMessage = async (req, res) => {
+  const messageId = Number(req.params.id);
+  if (!Number.isInteger(messageId) || messageId <= 0) {
+    return res.status(400).json({ error: 'Invalid message id' });
+  }
+
+  const message = contactRepo.getMessageById(messageId);
+  if (!message) {
+    return res.status(404).json({ error: 'Contact message not found' });
+  }
+
+  const subject = String(req.body.subject || '').trim();
+  const body = String(req.body.body || '').trim();
+  if (!subject || !body) {
+    return res.status(400).json({ error: 'subject and body are required' });
+  }
+
+  const mail = await sendMail({
+    to: message.email,
+    subject,
+    text: body,
+    html: `<p>${body.replace(/\n/g, '<br/>')}</p>`,
+  });
+
+  if (!mail.delivered) {
+    return res.status(502).json({ error: 'Could not send email reply' });
+  }
+
+  const updatedMessage = contactRepo.markMessageReplied({
+    id: messageId,
+    repliedBy: req.user.email || req.user.userId,
+  });
+
+  adminAuditRepo.logAction({
+    actorUserId: req.user.userId,
+    actorEmail: req.user.email,
+    action: 'contact.reply',
+    entityType: 'contact_message',
+    entityId: String(messageId),
+    before: null,
+    after: { to: message.email, subject },
+  });
+
+  return res.status(200).json({ sent: true, message: updatedMessage });
 };
 
 exports.createCollection = (req, res) => {

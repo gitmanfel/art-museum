@@ -28,6 +28,17 @@ const listOrders = (limit = 50) =>
     .prepare('SELECT * FROM orders ORDER BY created_at DESC LIMIT ?')
     .all(limit);
 
+const listOrdersForUser = (userId, limit = 100) =>
+  getDb()
+    .prepare(
+      `SELECT id, payment_intent_id, amount_cents, currency, provider, status, entitlements_changed, fulfilled_at, created_at
+       FROM orders
+       WHERE user_id = ?
+       ORDER BY created_at DESC
+       LIMIT ?`
+    )
+    .all(userId, limit);
+
 const listOrdersPaged = ({ page = 1, pageSize = 20, search = '' } = {}) => {
   const db = getDb();
   const safePage = Math.max(1, Number(page) || 1);
@@ -92,6 +103,7 @@ module.exports = {
   findByPaymentIntentIdForUser,
   createFulfilledOrder,
   listOrders,
+  listOrdersForUser,
   listOrdersPaged,
   getOrderMetrics,
 };

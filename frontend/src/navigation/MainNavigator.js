@@ -5,6 +5,8 @@ import HomeScreen from '../screens/HomeScreen';
 import CollectionsScreen from '../screens/CollectionsScreen';
 import ExhibitionScreen from '../screens/ExhibitionScreen';
 import ShopScreen from '../screens/ShopScreen';
+import OrdersScreen from '../screens/OrdersScreen';
+import ContactScreen from '../screens/ContactScreen';
 import TicketsScreen from '../screens/TicketsScreen';
 import MembershipScreen from '../screens/MembershipScreen';
 import ArtistsScreen from '../screens/ArtistsScreen';
@@ -70,6 +72,8 @@ const CustomDrawerContent = (props) => {
 };
 
 const MainNavigator = () => {
+  const { user } = useAuth();
+
   return (
     <Drawer.Navigator
       drawerContent={(props) => <CustomDrawerContent {...props} />}
@@ -134,20 +138,26 @@ const MainNavigator = () => {
         component={ShopScreen} 
         options={{ drawerLabel: 'Shop' }} 
       />
-      {user?.role === 'admin' ? (
-        <>
-          <Drawer.Screen
-            name="Admin Dashboard"
-            component={AdminDashboardScreen}
-            options={{ drawerLabel: 'Admin Dashboard' }}
-          />
-          <Drawer.Screen
-            name="Content Manager"
-            component={ContentManagementScreen}
-            options={{ drawerLabel: 'Content Manager' }}
-          />
-        </>
-      ) : null}
+      <Drawer.Screen
+        name="My Orders"
+        component={OrdersScreen}
+        options={{ drawerLabel: 'My Orders' }}
+      />
+      <Drawer.Screen
+        name="Contact"
+        component={ContactScreen}
+        options={{ drawerLabel: 'Contact' }}
+      />
+      <Drawer.Screen
+        name="Admin Dashboard"
+        component={AdminDashboardScreen}
+        options={{ drawerLabel: 'Admin Dashboard' }}
+      />
+      <Drawer.Screen
+        name="Content Manager"
+        component={ContentManagementScreen}
+        options={{ drawerLabel: 'Content Manager' }}
+      />
     </Drawer.Navigator>
   );
 };

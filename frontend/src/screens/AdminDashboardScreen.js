@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
+  Modal,
   RefreshControl,
   ScrollView,
   StyleSheet,
@@ -9,7 +10,15 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { getAdminAuditLogs, getAdminOrders, getAdminOverview, getAdminUsers } from '../services/admin';
+import {
+  getAdminAuditLogs,
+  getAdminContactMessages,
+  getAdminNewsletterSubscribers,
+  getAdminOrders,
+  getAdminOverview,
+  getAdminUsers,
+  replyToAdminContactMessage,
+} from '../services/admin';
 
 const formatCurrency = (cents) => `$${(Number(cents || 0) / 100).toFixed(2)}`;
 
@@ -28,6 +37,12 @@ const AdminDashboardScreen = () => {
   const [auditLogs, setAuditLogs] = useState([]);
   const [orders, setOrders] = useState([]);
   const [users, setUsers] = useState([]);
+  const [messages, setMessages] = useState([]);
+  const [subscribers, setSubscribers] = useState([]);
+  const [selectedMessage, setSelectedMessage] = useState(null);
+  const [replySubject, setReplySubject] = useState('');
+  const [replyBody, setReplyBody] = useState('');
+  const [sendingReply, setSendingReply] = useState(false);
   const [search, setSearch] = useState('');
   const [ordersPage, setOrdersPage] = useState(1);
   const [usersPage, setUsersPage] = useState(1);
@@ -38,21 +53,70 @@ const AdminDashboardScreen = () => {
 
     setError('');
     try {
-      const [data, audit, ordersResult, usersResult] = await Promise.all([
+      const [data, audit, ordersResult, usersResult, messagesResult, subscribersResult] = await Promise.all([
         getAdminOverview(),
-        getAdminAuditLogs({ page: 1, pageSize: 8 }),
+        getAdminAuditLogs({ page: 1, pageSize: 8, search }),
         getAdminOrders({ page: ordersPage, pageSize: 8, search }),
         getAdminUsers({ page: usersPage, pageSize: 8, search }),
+        getAdminContactMessages({ page: 1, pageSize: 6, search }),
+        getAdminNewsletterSubscribers({ page: 1, pageSize: 6, search }),
       ]);
+
       setOverview(data);
       setAuditLogs(audit.auditLogs || []);
       setOrders(ordersResult.orders || []);
       setUsers(usersResult.users || []);
+      setMessages(messagesResult.messages || []);
+      setSubscribers(subscribersResult.subscribers || []);
     } catch (e) {
-      setError(e.response?.data?.error || 'Unable to load admin dashboard.');
+      if (e.response?.status === 403) {
+        setError('Admin access required. Log in with an admin account to view dashboard data.');
+      } else {
+        setError(e.response?.data?.error || 'Unable to load admin dashboard.');
+      }
     } finally {
       if (isRefresh) setRefreshing(false);
       else setLoading(false);
+    }
+  };
+
+  const openMessageModal = (message) => {
+    setSelectedMessage(message);
+    setReplySubject(`Re: ${message.subject}`);
+    setReplyBody('');
+  };
+
+  const closeMessageModal = () => {
+    setSelectedMessage(null);
+    setReplySubject('');
+    setReplyBody('');
+  };
+
+  const sendReply = async () => {
+    if (!selectedMessage) return;
+    if (!replySubject.trim() || !replyBody.trim()) {
+      setError('Reply subject and body are required.');
+      return;
+    }
+
+    setSendingReply(true);
+    setError('');
+    try {
+      const replyResult = await replyToAdminContactMessage({
+        id: selectedMessage.id,
+        subject: replySubject.trim(),
+        body: replyBody.trim(),
+      });
+      setMessages((prev) => prev.map((msg) => (
+        msg.id === selectedMessage.id
+          ? { ...msg, replied_at: replyResult?.message?.replied_at, replied_by: replyResult?.message?.replied_by }
+          : msg
+      )));
+      closeMessageModal();
+    } catch (e) {
+      setError(e.response?.data?.error || 'Could not send reply email.');
+    } finally {
+      setSendingReply(false);
     }
   };
 
@@ -98,7 +162,7 @@ const AdminDashboardScreen = () => {
           style={styles.searchInput}
           value={search}
           onChangeText={setSearch}
-          placeholder="Search users or orders"
+          placeholder="Search users, orders, messages"
           placeholderTextColor="#9b9b9b"
         />
       </View>
@@ -137,22 +201,16 @@ const AdminDashboardScreen = () => {
           orders.map((order) => (
             <View key={order.id} style={styles.rowItem}>
               <Text style={styles.rowTitle}>{order.payment_intent_id}</Text>
-              <Text style={styles.rowMeta}>{formatCurrency(order.amount_cents)} • {order.provider}</Text>
+              <Text style={styles.rowMeta}>{formatCurrency(order.amount_cents)} - {order.provider}</Text>
             </View>
           ))
         )}
         <View style={styles.paginationRow}>
-          <TouchableOpacity
-            style={styles.pageBtn}
-            onPress={() => setOrdersPage((p) => Math.max(1, p - 1))}
-          >
+          <TouchableOpacity style={styles.pageBtn} onPress={() => setOrdersPage((p) => Math.max(1, p - 1))}>
             <Text style={styles.pageBtnText}>Prev</Text>
           </TouchableOpacity>
           <Text style={styles.rowMeta}>Page {ordersPage}</Text>
-          <TouchableOpacity
-            style={styles.pageBtn}
-            onPress={() => setOrdersPage((p) => p + 1)}
-          >
+          <TouchableOpacity style={styles.pageBtn} onPress={() => setOrdersPage((p) => p + 1)}>
             <Text style={styles.pageBtnText}>Next</Text>
           </TouchableOpacity>
         </View>
@@ -171,20 +229,51 @@ const AdminDashboardScreen = () => {
           ))
         )}
         <View style={styles.paginationRow}>
-          <TouchableOpacity
-            style={styles.pageBtn}
-            onPress={() => setUsersPage((p) => Math.max(1, p - 1))}
-          >
+          <TouchableOpacity style={styles.pageBtn} onPress={() => setUsersPage((p) => Math.max(1, p - 1))}>
             <Text style={styles.pageBtnText}>Prev</Text>
           </TouchableOpacity>
           <Text style={styles.rowMeta}>Page {usersPage}</Text>
-          <TouchableOpacity
-            style={styles.pageBtn}
-            onPress={() => setUsersPage((p) => p + 1)}
-          >
+          <TouchableOpacity style={styles.pageBtn} onPress={() => setUsersPage((p) => p + 1)}>
             <Text style={styles.pageBtnText}>Next</Text>
           </TouchableOpacity>
         </View>
+      </View>
+
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Contact Messages</Text>
+        {messages.length === 0 ? (
+          <Text style={styles.emptyText}>No contact messages yet.</Text>
+        ) : (
+          messages.map((msg) => (
+            <TouchableOpacity key={msg.id} style={styles.rowItem} onPress={() => openMessageModal(msg)}>
+              <View style={styles.messageHeaderRow}>
+                <Text style={styles.rowTitle}>{msg.subject}</Text>
+                <Text style={[styles.messageBadge, msg.replied_at ? styles.messageBadgeReplied : styles.messageBadgePending]}>
+                  {msg.replied_at ? 'REPLIED' : 'PENDING'}
+                </Text>
+              </View>
+              <Text style={styles.rowMeta}>{msg.name} - {msg.email}</Text>
+              <Text style={styles.rowMeta} numberOfLines={1}>{msg.message}</Text>
+              {msg.replied_at ? (
+                <Text style={styles.rowMeta}>Replied: {new Date(msg.replied_at * 1000).toLocaleString()}</Text>
+              ) : null}
+            </TouchableOpacity>
+          ))
+        )}
+      </View>
+
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Mailing List Subscribers</Text>
+        {subscribers.length === 0 ? (
+          <Text style={styles.emptyText}>No subscribers yet.</Text>
+        ) : (
+          subscribers.map((sub) => (
+            <View key={sub.id} style={styles.rowItem}>
+              <Text style={styles.rowTitle}>{sub.full_name || 'Unnamed subscriber'}</Text>
+              <Text style={styles.rowMeta}>{sub.email}</Text>
+            </View>
+          ))
+        )}
       </View>
 
       <View style={styles.section}>
@@ -195,12 +284,63 @@ const AdminDashboardScreen = () => {
           auditLogs.map((entry) => (
             <View key={entry.id} style={styles.rowItem}>
               <Text style={styles.rowTitle}>{entry.action}</Text>
-              <Text style={styles.rowMeta}>{entry.entity_type} • {entry.entity_id}</Text>
+              <Text style={styles.rowMeta}>{entry.entity_type} - {entry.entity_id}</Text>
               <Text style={styles.rowMeta}>{entry.actor_email || entry.actor_user_id}</Text>
             </View>
           ))
         )}
       </View>
+
+      <Modal
+        visible={Boolean(selectedMessage)}
+        transparent
+        animationType="fade"
+        onRequestClose={closeMessageModal}
+      >
+        <View style={styles.modalBackdrop}>
+          <View style={styles.modalCard}>
+            <Text style={styles.modalTitle}>Message Details</Text>
+            {selectedMessage ? (
+              <>
+                <Text style={styles.rowMeta}>From: {selectedMessage.name} ({selectedMessage.email})</Text>
+                <Text style={styles.rowMeta}>Subject: {selectedMessage.subject}</Text>
+                <Text style={styles.rowMeta}>
+                  Status: {selectedMessage.replied_at ? 'Replied' : 'Pending'}
+                </Text>
+                {selectedMessage.replied_at ? (
+                  <Text style={styles.rowMeta}>Replied at: {new Date(selectedMessage.replied_at * 1000).toLocaleString()}</Text>
+                ) : null}
+                <Text style={styles.modalMessage}>{selectedMessage.message}</Text>
+              </>
+            ) : null}
+
+            <TextInput
+              style={styles.searchInput}
+              placeholder="Reply subject"
+              placeholderTextColor="#9b9b9b"
+              value={replySubject}
+              onChangeText={setReplySubject}
+            />
+            <TextInput
+              style={[styles.searchInput, styles.replyBodyInput]}
+              placeholder="Reply message"
+              placeholderTextColor="#9b9b9b"
+              multiline
+              value={replyBody}
+              onChangeText={setReplyBody}
+            />
+
+            <View style={styles.modalActions}>
+              <TouchableOpacity style={styles.pageBtn} onPress={closeMessageModal}>
+                <Text style={styles.pageBtnText}>Close</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.sendReplyBtn} onPress={sendReply} disabled={sendingReply}>
+                <Text style={styles.sendReplyBtnText}>{sendingReply ? 'Sending...' : 'Send Reply'}</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </ScrollView>
   );
 };
@@ -296,6 +436,27 @@ const styles = StyleSheet.create({
     marginTop: 4,
     fontSize: 12,
   },
+  messageHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  messageBadge: {
+    fontSize: 10,
+    fontWeight: '700',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 999,
+    overflow: 'hidden',
+  },
+  messageBadgeReplied: {
+    color: '#0d652d',
+    backgroundColor: '#d9f2e1',
+  },
+  messageBadgePending: {
+    color: '#8a4b00',
+    backgroundColor: '#ffe8cc',
+  },
   paginationRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -313,6 +474,53 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#333',
     fontWeight: '600',
+  },
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.35)',
+    justifyContent: 'center',
+    padding: 18,
+  },
+  modalCard: {
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: '#e5e5e5',
+  },
+  modalTitle: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: '#111',
+    marginBottom: 8,
+  },
+  modalMessage: {
+    fontSize: 13,
+    color: '#333',
+    lineHeight: 20,
+    marginTop: 8,
+    marginBottom: 10,
+  },
+  replyBodyInput: {
+    minHeight: 92,
+    textAlignVertical: 'top',
+    marginTop: 8,
+  },
+  modalActions: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 8,
+  },
+  sendReplyBtn: {
+    backgroundColor: '#111',
+    borderRadius: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  sendReplyBtnText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: '700',
   },
 });
 

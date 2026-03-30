@@ -6,6 +6,7 @@ const catalogueRoutes = require('./routes/catalogue');
 const cartRoutes      = require('./routes/cart');
 const checkoutRoutes  = require('./routes/checkout');
 const adminRoutes     = require('./routes/admin');
+const contactRoutes   = require('./routes/contact');
 const { getMetrics } = require('./services/monitoring');
 
 const app = express();
@@ -40,6 +41,7 @@ app.use('/api/catalogue', catalogueRoutes);
 app.use('/api/cart',      cartRoutes);
 app.use('/api/checkout',  checkoutRoutes);
 app.use('/api/admin',     adminRoutes);
+app.use('/api/contact',   contactRoutes);
 
 app.get('/api/health', (req, res) => {
     res.status(200).json({

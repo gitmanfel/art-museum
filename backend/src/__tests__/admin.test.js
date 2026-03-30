@@ -177,4 +177,66 @@ describe('Admin Endpoints', () => {
     expect(Array.isArray(res.body.auditLogs)).toBe(true);
     expect(res.body).toHaveProperty('meta');
   });
+
+  it('returns paged contact messages for admins', async () => {
+    await request(app)
+      .post('/api/contact/message')
+      .send({
+        name: 'Admin Test Visitor',
+        email: 'admin-message@example.com',
+        subject: 'Accessibility question',
+        message: 'Do you provide wheelchair access in all galleries?',
+      })
+      .expect(201);
+
+    const res = await request(app)
+      .get('/api/admin/contact-messages?page=1&pageSize=10&search=accessibility')
+      .set('Authorization', `Bearer ${adminToken}`)
+      .expect(200);
+
+    expect(Array.isArray(res.body.messages)).toBe(true);
+    expect(res.body).toHaveProperty('meta');
+  });
+
+  it('returns paged newsletter subscribers for admins', async () => {
+    await request(app)
+      .post('/api/contact/subscribe')
+      .send({ fullName: 'Mailing Member', email: 'mailing-member@example.com' })
+      .expect(200);
+
+    const res = await request(app)
+      .get('/api/admin/newsletter-subscribers?page=1&pageSize=10&search=mailing-member')
+      .set('Authorization', `Bearer ${adminToken}`)
+      .expect(200);
+
+    expect(Array.isArray(res.body.subscribers)).toBe(true);
+    expect(res.body).toHaveProperty('meta');
+  });
+
+  it('sends reply to contact message as admin', async () => {
+    const messageRes = await request(app)
+      .post('/api/contact/message')
+      .send({
+        name: 'Reply Target',
+        email: 'reply-target@example.com',
+        subject: 'Membership Card',
+        message: 'How can I get my digital membership card?',
+      })
+      .expect(201);
+
+    const res = await request(app)
+      .post(`/api/admin/contact-messages/${messageRes.body.ticketId}/reply`)
+      .set('Authorization', `Bearer ${adminToken}`)
+      .send({
+        subject: 'Re: Membership Card',
+        body: 'Thank you for contacting us. You can access your card in the account area.',
+      })
+      .expect(200);
+
+    expect(res.body).toHaveProperty('sent', true);
+    expect(res.body).toHaveProperty('message');
+    expect(res.body.message).toHaveProperty('replied_at');
+    expect(res.body.message.replied_at).toBeTruthy();
+    expect(res.body.message).toHaveProperty('replied_by', 'admin@example.com');
+  });
 });

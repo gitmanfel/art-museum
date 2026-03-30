@@ -1,11 +1,21 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, ScrollView } from 'react-native';
 import { getCheckoutStatus } from '../services/checkout';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 
 const CheckoutStatusScreen = ({ navigation, route }) => {
-  const { paymentIntentId, provider, amountCents, initialStatus, initialFulfilled, initialEntitlementsChanged, initialUserRole } = route.params || {};
+  const {
+    paymentIntentId,
+    provider,
+    amountCents,
+    initialLineItems,
+    initialPlacedAt,
+    initialStatus,
+    initialFulfilled,
+    initialEntitlementsChanged,
+    initialUserRole,
+  } = route.params || {};
   const { refreshProfile } = useAuth();
   const { loadCart } = useCart();
 
@@ -14,6 +24,8 @@ const CheckoutStatusScreen = ({ navigation, route }) => {
   const [fulfilled, setFulfilled] = useState(Boolean(initialFulfilled));
   const [entitlementsChanged, setEntitlementsChanged] = useState(Boolean(initialEntitlementsChanged));
   const [userRole, setUserRole] = useState(initialUserRole || null);
+  const [lineItems] = useState(Array.isArray(initialLineItems) ? initialLineItems : []);
+  const [placedAt] = useState(initialPlacedAt || null);
   const [error, setError] = useState('');
 
   const refreshStatus = async () => {
@@ -57,8 +69,12 @@ const CheckoutStatusScreen = ({ navigation, route }) => {
     ? `$${(amountCents / 100).toFixed(2)}`
     : '$0.00';
 
+  const placedLabel = placedAt ? new Date(placedAt).toLocaleString() : null;
+
+  const orderReference = paymentIntentId ? String(paymentIntentId) : 'Not available';
+
   return (
-    <View style={styles.container}>
+    <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
       <Text style={styles.eyebrow}>CHECKOUT STATUS</Text>
       <Text style={styles.title}>{fulfilled ? 'Payment Confirmed' : 'Payment Processing'}</Text>
       <Text style={styles.subtitle}>
@@ -82,6 +98,16 @@ const CheckoutStatusScreen = ({ navigation, route }) => {
             {fulfilled ? 'SUCCEEDED' : String(status || 'processing').toUpperCase()}
           </Text>
         </View>
+        <View style={styles.row}>
+          <Text style={styles.label}>Order Ref</Text>
+          <Text style={styles.valueRef}>{orderReference}</Text>
+        </View>
+        {placedLabel ? (
+          <View style={styles.row}>
+            <Text style={styles.label}>Placed At</Text>
+            <Text style={styles.value}>{placedLabel}</Text>
+          </View>
+        ) : null}
         {entitlementsChanged ? (
           <View style={styles.noticeBox}>
             <Text style={styles.noticeTitle}>Membership Activated</Text>
@@ -91,6 +117,21 @@ const CheckoutStatusScreen = ({ navigation, route }) => {
           </View>
         ) : null}
       </View>
+
+      {lineItems.length > 0 ? (
+        <View style={styles.card}>
+          <Text style={styles.sectionTitle}>Placed Order</Text>
+          {lineItems.map((item) => (
+            <View key={String(item.id)} style={styles.itemRow}>
+              <View style={styles.itemInfo}>
+                <Text style={styles.itemName}>{item.name}</Text>
+                <Text style={styles.itemMeta}>{String(item.type || '').toUpperCase()} x {item.quantity}</Text>
+              </View>
+              <Text style={styles.itemTotal}>${(Number(item.unitPrice || 0) * Number(item.quantity || 0)).toFixed(2)}</Text>
+            </View>
+          ))}
+        </View>
+      ) : null}
 
       {error ? <Text style={styles.errorText}>{error}</Text> : null}
       {checking ? <ActivityIndicator color="#ff4c4c" style={styles.loader} /> : null}
@@ -107,7 +148,7 @@ const CheckoutStatusScreen = ({ navigation, route }) => {
       >
         <Text style={styles.secondaryButtonText}>{fulfilled ? 'Return to Museum' : 'Back to Museum'}</Text>
       </TouchableOpacity>
-    </View>
+    </ScrollView>
   );
 };
 
@@ -115,8 +156,10 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
+  },
+  contentContainer: {
     padding: 24,
-    justifyContent: 'center',
+    paddingBottom: 32,
   },
   eyebrow: {
     fontSize: 12,
@@ -155,6 +198,46 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
   },
   value: {
+    fontSize: 14,
+    color: '#111',
+    fontWeight: '700',
+  },
+  valueRef: {
+    flex: 1,
+    textAlign: 'right',
+    fontSize: 13,
+    color: '#111',
+    fontWeight: '700',
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#111',
+    marginBottom: 12,
+  },
+  itemRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    paddingVertical: 10,
+    borderTopWidth: 1,
+    borderTopColor: '#e7dfd3',
+  },
+  itemInfo: {
+    flex: 1,
+    paddingRight: 12,
+  },
+  itemName: {
+    fontSize: 14,
+    color: '#111',
+    fontWeight: '600',
+    marginBottom: 3,
+  },
+  itemMeta: {
+    fontSize: 12,
+    color: '#777',
+  },
+  itemTotal: {
     fontSize: 14,
     color: '#111',
     fontWeight: '700',

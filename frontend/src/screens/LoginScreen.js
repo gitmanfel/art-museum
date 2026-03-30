@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, TextInput, Pressable, StyleSheet, ActivityIndicator, Platform } from 'react-native';
 import { login, forgotPassword } from '../services/auth';
 import { useAuth } from '../context/AuthContext';
 
@@ -10,6 +10,7 @@ const LoginScreen = ({ navigation }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
+  const webPress = (handler) => (Platform.OS === 'web' ? { onClick: handler } : {});
 
   const handleForgotPassword = async () => {
     setError('');
@@ -81,25 +82,26 @@ const LoginScreen = ({ navigation }) => {
         secureTextEntry
       />
       
-      <TouchableOpacity onPress={handleForgotPassword}>
+      <Pressable onPress={handleForgotPassword} {...webPress(handleForgotPassword)}>
         <Text style={styles.forgotPassword}>Forgot your password?</Text>
-      </TouchableOpacity>
+      </Pressable>
       
-      <TouchableOpacity 
-          style={styles.loginButton} 
-          onPress={handleLogin}
-          disabled={loading}
+      <Pressable
+        style={styles.loginButton}
+        onPress={handleLogin}
+        disabled={loading}
+        {...webPress(handleLogin)}
       >
         {loading ? (
             <ActivityIndicator color="#fff" />
         ) : (
             <Text style={styles.loginButtonText}>Log In</Text>
         )}
-      </TouchableOpacity>
+      </Pressable>
       
-      <TouchableOpacity onPress={() => navigation.navigate('Register')}>
+      <Pressable onPress={() => navigation.navigate('Register')} {...webPress(() => navigation.navigate('Register'))}>
         <Text style={styles.registerText}>Don't have an account?</Text>
-      </TouchableOpacity>
+      </Pressable>
     </View>
   );
 };

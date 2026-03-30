@@ -91,6 +91,19 @@ describe('Checkout Endpoints', () => {
     });
   });
 
+  it('returns order history for authenticated user', async () => {
+    const res = await request(app)
+      .get('/api/checkout/orders')
+      .set(auth())
+      .expect(200);
+
+    expect(res.body).toHaveProperty('orders');
+    expect(Array.isArray(res.body.orders)).toBe(true);
+    expect(res.body.orders.length).toBeGreaterThan(0);
+    expect(res.body.orders[0]).toHaveProperty('payment_intent_id');
+    expect(res.body.orders[0]).toHaveProperty('amount_cents');
+  });
+
   it('fulfills successful payment webhook and clears cart', async () => {
     // Ensure cart has items for this user prior to webhook.
     await request(app)

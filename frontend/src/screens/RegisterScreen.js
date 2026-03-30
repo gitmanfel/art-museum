@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, TextInput, Pressable, StyleSheet, ActivityIndicator, Platform } from 'react-native';
 import { register } from '../services/auth';
 import { useAuth } from '../context/AuthContext';
 
@@ -8,6 +8,7 @@ const isStrongPassword = (value) => {
 };
 
 const RegisterScreen = ({ navigation }) => {
+  const webPress = (handler) => (Platform.OS === 'web' ? { onClick: handler } : {});
   const { refreshProfile } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -87,21 +88,22 @@ const RegisterScreen = ({ navigation }) => {
         secureTextEntry
       />
 
-      <TouchableOpacity
+      <Pressable
         style={styles.registerButton}
         onPress={handleRegister}
         disabled={loading}
+        {...webPress(handleRegister)}
       >
         {loading ? (
           <ActivityIndicator color="#fff" />
         ) : (
           <Text style={styles.registerButtonText}>Create Account</Text>
         )}
-      </TouchableOpacity>
+      </Pressable>
 
-      <TouchableOpacity onPress={() => navigation.navigate('Login')}>
+      <Pressable onPress={() => navigation.navigate('Login')} {...webPress(() => navigation.navigate('Login'))}>
         <Text style={styles.loginText}>Already have an account?</Text>
-      </TouchableOpacity>
+      </Pressable>
     </View>
   );
 };

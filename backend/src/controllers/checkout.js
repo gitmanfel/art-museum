@@ -186,6 +186,11 @@ exports.getCheckoutStatus = (req, res) => {
   });
 };
 
+exports.getMyOrders = (req, res) => {
+  const orders = orderRepo.listOrdersForUser(req.user.userId, 100);
+  return res.status(200).json({ orders });
+};
+
 exports.handleWebhook = (req, res) => {
   const signature = req.headers['stripe-signature'];
   let event;

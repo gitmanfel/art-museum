@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Image, ScrollView, Dimensions, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, Image, ScrollView, Dimensions, Pressable, Alert, ActivityIndicator, Platform } from 'react-native';
 import { useCart } from '../context/CartContext';
 import { getProduct } from '../services/catalogue';
 
@@ -8,6 +8,7 @@ const { width } = Dimensions.get('window');
 const DEFAULT_PRODUCT_ID = 'product-braun-watch';
 
 const ShopScreen = ({ navigation }) => {
+  const webPress = (handler) => (Platform.OS === 'web' ? { onClick: handler } : {});
   const [product, setProduct] = useState(null);
   const [activeIndex, setActiveIndex] = useState(0);
   const [quantity, setQuantity] = useState(0);
@@ -63,10 +64,14 @@ const ShopScreen = ({ navigation }) => {
       quantity,
     });
     if (result.success) {
-      Alert.alert('Added to Cart', `${quantity} × ${product.name} added.`, [
-        { text: 'Keep Shopping', style: 'cancel' },
-        { text: 'View Cart', onPress: () => navigation.getParent().navigate('Cart') },
-      ]);
+      if (Platform.OS === 'web') {
+        navigation.navigate('Cart');
+      } else {
+        Alert.alert('Added to Cart', `${quantity} × ${product.name} added.`, [
+          { text: 'Keep Shopping', style: 'cancel' },
+          { text: 'View Cart', onPress: () => navigation.getParent().navigate('Cart') },
+        ]);
+      }
       setQuantity(0);
     } else if (result.error) {
       Alert.alert('Could not add item', result.error);
@@ -145,27 +150,32 @@ const ShopScreen = ({ navigation }) => {
           
           {/* Quantity Selector */}
           <View style={styles.quantitySelector}>
-            <TouchableOpacity onPress={decrementQuantity} style={styles.qtyBtn}>
+            <Pressable onPress={decrementQuantity} style={styles.qtyBtn} {...webPress(decrementQuantity)}>
               <Text style={styles.qtyBtnText}>-</Text>
-            </TouchableOpacity>
+            </Pressable>
             <Text style={styles.qtyText}>{quantity}</Text>
-            <TouchableOpacity onPress={incrementQuantity} style={styles.qtyBtn} disabled={quantity >= stockQuantity}>
+            <Pressable
+              onPress={incrementQuantity}
+              style={styles.qtyBtn}
+              disabled={quantity >= stockQuantity}
+              {...webPress(incrementQuantity)}
+            >
               <Text style={styles.qtyBtnText}>+</Text>
-            </TouchableOpacity>
+            </Pressable>
           </View>
         </View>
 
-        <TouchableOpacity 
-          style={styles.addToCartButton}
+        <Pressable
           onPress={handleAddToCart}
           disabled={quantity === 0 || loading || stockQuantity === 0}
           style={[styles.addToCartButton, (quantity === 0 || loading || stockQuantity === 0) && styles.addToCartButtonDisabled]}
+          {...webPress(handleAddToCart)}
         >
           {loading
             ? <ActivityIndicator color="#fff" />
             : <Text style={styles.addToCartButtonText}>Add to Cart</Text>
           }
-        </TouchableOpacity>
+        </Pressable>
       </View>
 
     </ScrollView>

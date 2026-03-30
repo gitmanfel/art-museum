@@ -38,6 +38,24 @@ export const getAdminAuditLogs = async ({ page = 1, pageSize = 20, search = '' }
   return data;
 };
 
+export const getAdminContactMessages = async ({ page = 1, pageSize = 20, search = '' } = {}) => {
+  const api = await getAdminApi();
+  const { data } = await api.get('/contact-messages', { params: { page, pageSize, search } });
+  return data;
+};
+
+export const getAdminNewsletterSubscribers = async ({ page = 1, pageSize = 20, search = '' } = {}) => {
+  const api = await getAdminApi();
+  const { data } = await api.get('/newsletter-subscribers', { params: { page, pageSize, search } });
+  return data;
+};
+
+export const replyToAdminContactMessage = async ({ id, subject, body }) => {
+  const api = await getAdminApi();
+  const { data } = await api.post(`/contact-messages/${id}/reply`, { subject, body });
+  return data;
+};
+
 export const createAdminCollection = async (payload) => {
   const api = await getAdminApi();
   const { data } = await api.post('/collections', payload);

@@ -32,3 +32,9 @@ export const getCheckoutStatus = async (paymentIntentId) => {
   const { data } = await api.get(`/status/${paymentIntentId}`);
   return data;
 };
+
+export const getMyOrders = async () => {
+  const api = await checkoutApi();
+  const { data } = await api.get('/orders');
+  return data.orders || [];
+};

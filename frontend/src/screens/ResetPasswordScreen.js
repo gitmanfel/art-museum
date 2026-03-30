@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, TextInput, Pressable, StyleSheet, ActivityIndicator, Platform } from 'react-native';
 import { resetPassword } from '../services/auth';
 
 const isStrongPassword = (value) => {
@@ -7,6 +7,7 @@ const isStrongPassword = (value) => {
 };
 
 const ResetPasswordScreen = ({ navigation, route }) => {
+  const webPress = (handler) => (Platform.OS === 'web' ? { onClick: handler } : {});
   const initialToken = route?.params?.token || '';
   const [token, setToken] = useState(initialToken);
   const [newPassword, setNewPassword] = useState('');
@@ -89,13 +90,13 @@ const ResetPasswordScreen = ({ navigation, route }) => {
         Use 10+ characters with upper/lowercase, a number, and a special character.
       </Text>
 
-      <TouchableOpacity style={styles.resetButton} onPress={handleReset} disabled={loading}>
+      <Pressable style={styles.resetButton} onPress={handleReset} disabled={loading} {...webPress(handleReset)}>
         {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.resetButtonText}>Reset Password</Text>}
-      </TouchableOpacity>
+      </Pressable>
 
-      <TouchableOpacity onPress={() => navigation.navigate('Login')}>
+      <Pressable onPress={() => navigation.navigate('Login')} {...webPress(() => navigation.navigate('Login'))}>
         <Text style={styles.backText}>Back to login</Text>
-      </TouchableOpacity>
+      </Pressable>
     </View>
   );
 };

@@ -1,13 +1,14 @@
 import React, { useEffect } from 'react';
 import {
-  View, Text, StyleSheet, FlatList, TouchableOpacity,
-  ActivityIndicator, Alert,
+  View, Text, StyleSheet, FlatList, Pressable,
+  ActivityIndicator, Alert, Platform,
 } from 'react-native';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { createCheckoutIntent } from '../services/checkout';
 
 const CartScreen = ({ navigation }) => {
+  const webPress = (handler) => (Platform.OS === 'web' ? { onClick: handler } : {});
   const { items, total, loading, error, loadCart, removeItem, clearCart } = useCart();
   const { refreshProfile } = useAuth();
 
@@ -43,6 +44,14 @@ const CartScreen = ({ navigation }) => {
         provider: intent.provider,
         clientSecret: intent.clientSecret,
         amountCents: intent.amountCents,
+        lineItems: items.map((item) => ({
+          id: item.id,
+          name: item.metadata?.name || item.item_id,
+          type: item.item_type,
+          quantity: item.quantity,
+          unitPrice: item.unit_price,
+        })),
+        placedAt: new Date().toISOString(),
         initialStatus: intent.status,
         initialFulfilled: intent.fulfilled,
         initialEntitlementsChanged: intent.entitlementsChanged,
@@ -67,9 +76,9 @@ const CartScreen = ({ navigation }) => {
       <View style={styles.centered}>
         <Text style={styles.emptyIcon}>🛒</Text>
         <Text style={styles.emptyText}>Your cart is empty.</Text>
-        <TouchableOpacity onPress={() => navigation.navigate('Shop')} style={styles.shopBtn}>
+        <Pressable onPress={() => navigation.navigate('Shop')} style={styles.shopBtn} {...webPress(() => navigation.navigate('Shop'))}>
           <Text style={styles.shopBtnText}>Browse the Shop</Text>
-        </TouchableOpacity>
+        </Pressable>
       </View>
     );
   }
@@ -82,9 +91,9 @@ const CartScreen = ({ navigation }) => {
           {item.item_type} · qty {item.quantity} · ${(item.unit_price * item.quantity).toFixed(2)}
         </Text>
       </View>
-      <TouchableOpacity onPress={() => handleRemove(item.id, item.metadata?.name || item.item_id)}>
+      <Pressable onPress={() => handleRemove(item.id, item.metadata?.name || item.item_id)} {...webPress(() => handleRemove(item.id, item.metadata?.name || item.item_id))}>
         <Text style={styles.removeBtn}>✕</Text>
-      </TouchableOpacity>
+      </Pressable>
     </View>
   );
 
@@ -106,16 +115,17 @@ const CartScreen = ({ navigation }) => {
           <Text style={styles.totalValue}>${total.toFixed(2)}</Text>
         </View>
 
-        <TouchableOpacity
+        <Pressable
           style={styles.checkoutBtn}
           onPress={handleCheckout}
+          {...webPress(handleCheckout)}
         >
           <Text style={styles.checkoutBtnText}>Proceed to Checkout</Text>
-        </TouchableOpacity>
+        </Pressable>
 
-        <TouchableOpacity onPress={handleClear} style={styles.clearBtn}>
+        <Pressable onPress={handleClear} style={styles.clearBtn} {...webPress(handleClear)}>
           <Text style={styles.clearBtnText}>Clear cart</Text>
-        </TouchableOpacity>
+        </Pressable>
       </View>
     </View>
   );

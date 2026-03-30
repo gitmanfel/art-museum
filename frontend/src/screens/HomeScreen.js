@@ -1,9 +1,11 @@
 import React from 'react';
-import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, Image, ScrollView, Pressable, Dimensions, Platform } from 'react-native';
 
 const { width } = Dimensions.get('window');
 
 const HomeScreen = ({ navigation }) => {
+  const webPress = (handler) => (Platform.OS === 'web' ? { onClick: handler } : {});
+
   return (
     <ScrollView style={styles.container}>
       {/* Header Image / Featured Exhibition */}
@@ -19,12 +21,13 @@ const HomeScreen = ({ navigation }) => {
         <Text style={styles.dateText}>APRIL 15 - SEPTEMBER 20</Text>
         <Text style={styles.floorText}>FLOOR 5</Text>
         
-        <TouchableOpacity 
+        <Pressable 
           style={styles.planVisitButton}
           onPress={() => navigation.navigate('Plan Your Visit')}
+          {...webPress(() => navigation.navigate('Plan Your Visit'))}
         >
           <Text style={styles.planVisitButtonText}>Plan Your Visit</Text>
-        </TouchableOpacity>
+        </Pressable>
         
         {/* Footer Info (Location and Hours) */}
         <View style={styles.footerContainer}>
