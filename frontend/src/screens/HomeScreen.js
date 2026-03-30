@@ -21,7 +21,7 @@ const HomeScreen = ({ navigation }) => {
         
         <TouchableOpacity 
           style={styles.planVisitButton}
-          onPress={() => console.log('Navigate to Plan Your Visit')}
+          onPress={() => navigation.navigate('Plan Your Visit')}
         >
           <Text style={styles.planVisitButtonText}>Plan Your Visit</Text>
         </TouchableOpacity>

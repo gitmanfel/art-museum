@@ -1,15 +1,31 @@
 import React from 'react';
-import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, Dimensions } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, Dimensions, Alert, ActivityIndicator } from 'react-native';
+import { useCart } from '../context/CartContext';
 
 const { width } = Dimensions.get('window');
 
 const MEMBERSHIP_TIERS = [
-  { id: '1', name: 'Individual', price: '$75', description: '$60 tax deductible' },
-  { id: '2', name: 'Dual', price: '$125', description: '$60 tax deductible' },
-  { id: '3', name: 'Supporter', price: '$300', description: '$60 tax deductible' },
+  { id: 'membership-individual', name: 'Individual', price: '$75', description: '$60 tax deductible' },
+  { id: 'membership-dual',       name: 'Dual',       price: '$125', description: '$60 tax deductible' },
+  { id: 'membership-supporter',  name: 'Supporter',  price: '$300', description: '$60 tax deductible' },
 ];
 
-const MembershipScreen = () => {
+const MembershipScreen = ({ navigation }) => {
+  const [selectedTier, setSelectedTier] = useState(null);
+  const { addItem, loading } = useCart();
+
+  const handleJoin = async () => {
+    if (!selectedTier) {
+      Alert.alert('Select a tier', 'Please choose a membership level first.');
+      return;
+    }
+    const result = await addItem({ itemType: 'membership', itemId: selectedTier, quantity: 1 });
+    if (result.success) {
+      navigation.getParent().navigate('Cart');
+    }
+  };
+
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
       {/* Hero Image Section */}
@@ -32,7 +48,11 @@ const MembershipScreen = () => {
 
         <View style={styles.tiersList}>
           {MEMBERSHIP_TIERS.map((tier) => (
-            <TouchableOpacity key={tier.id} style={styles.tierRow}>
+            <TouchableOpacity
+              key={tier.id}
+              style={[styles.tierRow, selectedTier === tier.id && styles.tierRowSelected]}
+              onPress={() => setSelectedTier(tier.id)}
+            >
               <View>
                 <Text style={styles.tierTitle}>{tier.name}—{tier.price}</Text>
                 <Text style={styles.tierDescription}>{tier.description}</Text>
@@ -44,9 +64,13 @@ const MembershipScreen = () => {
 
         <TouchableOpacity 
           style={styles.joinButton}
-          onPress={() => console.log('Proceeding to join today flow')}
+          onPress={handleJoin}
+          disabled={loading}
         >
-          <Text style={styles.joinButtonText}>Join Today</Text>
+          {loading
+            ? <ActivityIndicator color="#fff" />
+            : <Text style={styles.joinButtonText}>Join Today</Text>
+          }
         </TouchableOpacity>
       </View>
     </ScrollView>
@@ -108,6 +132,9 @@ const styles = StyleSheet.create({
     paddingVertical: 20,
     borderBottomWidth: 1,
     borderBottomColor: '#eee',
+  },
+  tierRowSelected: {
+    backgroundColor: '#fff5f5',
   },
   tierTitle: {
     fontSize: 18,

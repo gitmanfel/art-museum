@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, StyleSheet, TextInput, Text } from 'react-native';
+import { View, StyleSheet, TextInput, Text, TouchableOpacity } from 'react-native';
 import { createDrawerNavigator, DrawerContentScrollView, DrawerItemList } from '@react-navigation/drawer';
 import HomeScreen from '../screens/HomeScreen';
 import CollectionsScreen from '../screens/CollectionsScreen';
@@ -7,9 +7,29 @@ import ExhibitionScreen from '../screens/ExhibitionScreen';
 import ShopScreen from '../screens/ShopScreen';
 import TicketsScreen from '../screens/TicketsScreen';
 import MembershipScreen from '../screens/MembershipScreen';
-import PlaceholderScreen from '../screens/PlaceholderScreen';
+import ArtistsScreen from '../screens/ArtistsScreen';
+import { useCart } from '../context/CartContext';
 
 const Drawer = createDrawerNavigator();
+
+// Cart icon shown in every drawer screen's header
+const CartHeaderButton = ({ navigation }) => {
+  const { itemCount } = useCart();
+  return (
+    <TouchableOpacity
+      onPress={() => navigation.getParent().navigate('Cart')}
+      style={styles.cartBtn}
+      accessibilityLabel="Open cart"
+    >
+      <Text style={styles.cartIcon}>🛒</Text>
+      {itemCount > 0 && (
+        <View style={styles.badge}>
+          <Text style={styles.badgeText}>{itemCount > 99 ? '99+' : itemCount}</Text>
+        </View>
+      )}
+    </TouchableOpacity>
+  );
+};
 
 // Custom Drawer component to match the Prototype (Image 3)
 const CustomDrawerContent = (props) => {
@@ -35,7 +55,7 @@ const MainNavigator = () => {
   return (
     <Drawer.Navigator
       drawerContent={(props) => <CustomDrawerContent {...props} />}
-      screenOptions={{
+      screenOptions={({ navigation }) => ({
         headerShown: true, // Prototype shows a header with a hamburger menu
         headerStyle: {
           backgroundColor: '#fff',
@@ -47,6 +67,7 @@ const MainNavigator = () => {
             letterSpacing: 2,
         },
         headerTintColor: '#000',
+        headerRight: () => <CartHeaderButton navigation={navigation} />,
         drawerStyle: {
           backgroundColor: '#ff4c4c', // Signature Red from prototype
           width: 280,
@@ -58,7 +79,7 @@ const MainNavigator = () => {
             fontWeight: 'bold',
             marginLeft: -15, // Bring text closer to edge if icons are missing
         },
-      }}
+      })}
     >
       <Drawer.Screen 
         name="Home" 
@@ -72,7 +93,7 @@ const MainNavigator = () => {
       />
       <Drawer.Screen 
         name="Artists & Artworks" 
-        component={PlaceholderScreen} 
+        component={ArtistsScreen} 
         options={{ drawerLabel: 'Artists & Artworks' }} 
       />
       <Drawer.Screen 
@@ -123,6 +144,31 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
   }
+  ,
+  cartBtn: {
+    marginRight: 16,
+    padding: 4,
+  },
+  cartIcon: {
+    fontSize: 22,
+  },
+  badge: {
+    position: 'absolute',
+    top: -2,
+    right: 8,
+    backgroundColor: '#ff4c4c',
+    borderRadius: 8,
+    minWidth: 16,
+    height: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 3,
+  },
+  badgeText: {
+    color: '#fff',
+    fontSize: 10,
+    fontWeight: 'bold',
+  },
 });
 
 export default MainNavigator;

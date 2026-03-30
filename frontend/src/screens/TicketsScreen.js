@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert, ActivityIndicator } from 'react-native';
+import { useCart } from '../context/CartContext';
 
 const PRICING = {
   adults: 8,
@@ -7,13 +9,20 @@ const PRICING = {
   students: 5,
 };
 
-const TicketsScreen = () => {
+const TICKET_ITEM_IDS = {
+  adults:   'ticket-adults',
+  seniors:  'ticket-seniors',
+  students: 'ticket-students',
+};
+
+const TicketsScreen = ({ navigation }) => {
   const [selectedDate, setSelectedDate] = useState('Tomorrow');
   const [counts, setCounts] = useState({
     adults: 2,
     seniors: 0,
     students: 0,
   });
+  const { addItem, loading } = useCart();
 
   const increment = (type) => {
     setCounts((prev) => ({ ...prev, [type]: prev[type] + 1 }));
@@ -95,9 +104,30 @@ const TicketsScreen = () => {
       {/* Action Button */}
       <TouchableOpacity 
         style={styles.paymentButton}
-        onPress={() => console.log(`Proceeding to payment for $${calculateTotal()}`)}
+        disabled={loading || calculateTotal() === 0}
+        onPress={async () => {
+          const entries = Object.entries(counts).filter(([, qty]) => qty > 0);
+          if (entries.length === 0) {
+            Alert.alert('No tickets selected', 'Please select at least one ticket.');
+            return;
+          }
+          const results = await Promise.all(
+            entries.map(([type, qty]) =>
+              addItem({ itemType: 'ticket', itemId: TICKET_ITEM_IDS[type], quantity: qty })
+            )
+          );
+          const anyFailed = results.some(r => !r.success);
+          if (anyFailed) {
+            Alert.alert('Error', 'Could not add tickets. Please try again.');
+          } else {
+            navigation.getParent().navigate('Cart');
+          }
+        }}
       >
-        <Text style={styles.paymentButtonText}>Continue to Payment</Text>
+        {loading
+          ? <ActivityIndicator color="#fff" />
+          : <Text style={styles.paymentButtonText}>Continue to Payment</Text>
+        }
       </TouchableOpacity>
 
     </ScrollView>

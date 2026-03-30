@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Image, ScrollView, Dimensions, TouchableOpacity } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, Image, ScrollView, Dimensions, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
+import { useCart } from '../context/CartContext';
 
 const { width } = Dimensions.get('window');
 
@@ -11,8 +13,10 @@ const PRODUCT_IMAGES = [
 ];
 
 const ShopScreen = () => {
+const ShopScreen = ({ navigation }) => {
   const [activeIndex, setActiveIndex] = useState(0);
   const [quantity, setQuantity] = useState(0);
+  const { addItem, loading } = useCart();
 
   const onScroll = (event) => {
     const slideSize = event.nativeEvent.layoutMeasurement.width;
@@ -25,6 +29,22 @@ const ShopScreen = () => {
 
   const incrementQuantity = () => setQuantity(prev => prev + 1);
   const decrementQuantity = () => setQuantity(prev => (prev > 0 ? prev - 1 : 0));
+
+  const handleAddToCart = async () => {
+    if (quantity === 0) return;
+    const result = await addItem({
+      itemType: 'product',
+      itemId: 'product-braun-watch',
+      quantity,
+    });
+    if (result.success) {
+      Alert.alert('Added to Cart', `${quantity} × Braun Classic Watch added.`, [
+        { text: 'Keep Shopping', style: 'cancel' },
+        { text: 'View Cart', onPress: () => navigation.getParent().navigate('Cart') },
+      ]);
+      setQuantity(0);
+    }
+  };
 
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
@@ -87,9 +107,14 @@ const ShopScreen = () => {
 
         <TouchableOpacity 
           style={styles.addToCartButton}
-          onPress={() => console.log(`Added ${quantity} watches to cart`)}
+          onPress={handleAddToCart}
+          disabled={quantity === 0 || loading}
+          style={[styles.addToCartButton, (quantity === 0 || loading) && styles.addToCartButtonDisabled]}
         >
-          <Text style={styles.addToCartButtonText}>Add to Cart</Text>
+          {loading
+            ? <ActivityIndicator color="#fff" />
+            : <Text style={styles.addToCartButtonText}>Add to Cart</Text>
+          }
         </TouchableOpacity>
       </View>
 
@@ -199,6 +224,10 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     fontSize: 16,
   }
+  ,
+  addToCartButtonDisabled: {
+    backgroundColor: '#ccc',
+  },
 });
 
 export default ShopScreen;
