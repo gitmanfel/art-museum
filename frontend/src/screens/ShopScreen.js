@@ -1,22 +1,43 @@
-import React, { useState } from 'react';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Image, ScrollView, Dimensions, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import { useCart } from '../context/CartContext';
+import { getProduct } from '../services/catalogue';
 
 const { width } = Dimensions.get('window');
 
-// Mock data based on Image 5
-const PRODUCT_IMAGES = [
-  { id: '1', uri: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80' }, // Watch placeholder
-  { id: '2', uri: 'https://images.unsplash.com/photo-1542496658-e33a6d0d50f6?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80' },
-  { id: '3', uri: 'https://images.unsplash.com/photo-1508685096489-7aacd43bd3b1?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80' },
-];
+const DEFAULT_PRODUCT_ID = 'product-braun-watch';
 
-const ShopScreen = () => {
 const ShopScreen = ({ navigation }) => {
+  const [product, setProduct] = useState(null);
   const [activeIndex, setActiveIndex] = useState(0);
   const [quantity, setQuantity] = useState(0);
+  const [loadingProduct, setLoadingProduct] = useState(true);
+  const [productError, setProductError] = useState('');
   const { addItem, loading } = useCart();
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadProduct = async () => {
+      setLoadingProduct(true);
+      setProductError('');
+      try {
+        const data = await getProduct(DEFAULT_PRODUCT_ID);
+        if (!isMounted) return;
+        setProduct(data);
+      } catch (e) {
+        if (!isMounted) return;
+        setProductError('Could not load product details.');
+      } finally {
+        if (isMounted) setLoadingProduct(false);
+      }
+    };
+
+    loadProduct();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const onScroll = (event) => {
     const slideSize = event.nativeEvent.layoutMeasurement.width;
@@ -31,20 +52,38 @@ const ShopScreen = ({ navigation }) => {
   const decrementQuantity = () => setQuantity(prev => (prev > 0 ? prev - 1 : 0));
 
   const handleAddToCart = async () => {
-    if (quantity === 0) return;
+    if (quantity === 0 || !product) return;
     const result = await addItem({
       itemType: 'product',
-      itemId: 'product-braun-watch',
+      itemId: product.id,
       quantity,
     });
     if (result.success) {
-      Alert.alert('Added to Cart', `${quantity} × Braun Classic Watch added.`, [
+      Alert.alert('Added to Cart', `${quantity} × ${product.name} added.`, [
         { text: 'Keep Shopping', style: 'cancel' },
         { text: 'View Cart', onPress: () => navigation.getParent().navigate('Cart') },
       ]);
       setQuantity(0);
     }
   };
+
+  if (loadingProduct) {
+    return (
+      <View style={styles.centered}>
+        <ActivityIndicator size="large" color="#ff4c4c" />
+      </View>
+    );
+  }
+
+  if (!product) {
+    return (
+      <View style={styles.centered}>
+        <Text style={styles.errorText}>{productError || 'Product unavailable.'}</Text>
+      </View>
+    );
+  }
+
+  const productImages = (product.images || []).map((uri, i) => ({ id: `${i}`, uri }));
 
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
@@ -58,7 +97,7 @@ const ShopScreen = ({ navigation }) => {
           onScroll={onScroll}
           scrollEventThrottle={16}
         >
-          {PRODUCT_IMAGES.map((img) => (
+          {productImages.map((img) => (
             <View key={img.id} style={styles.slide}>
               <Image source={{ uri: img.uri }} style={styles.productImage} />
             </View>
@@ -67,7 +106,7 @@ const ShopScreen = ({ navigation }) => {
         
         {/* Pagination Dots */}
         <View style={styles.paginationContainer}>
-          {PRODUCT_IMAGES.map((_, i) => (
+          {productImages.map((_, i) => (
             <View 
               key={i} 
               style={[
@@ -81,16 +120,18 @@ const ShopScreen = ({ navigation }) => {
 
       {/* Product Details */}
       <View style={styles.detailsContainer}>
-        <Text style={styles.productTitle}>Braun Classic Watch</Text>
+        <Text style={styles.productTitle}>{product.name}</Text>
         
         <Text style={styles.productDescription}>
-          This Braun watch is a reissue of the original 1970's design from renowned design team Dietrich Lubs and Dieter Rams, both of whom have work featured in the Museum's collection. The large watch features a numbered face, and the smaller watch has only index lines. Made of a matte stainless-steel case, black dial.
+          {product.description}
         </Text>
 
         <View style={styles.priceRow}>
           <View>
-            <Text style={styles.price}>$160.00</Text>
-            <Text style={styles.memberPrice}>$140.00 Member Price</Text>
+            <Text style={styles.price}>${Number(product.price).toFixed(2)}</Text>
+            <Text style={styles.memberPrice}>
+              ${Number(product.member_price || product.price).toFixed(2)} Member Price
+            </Text>
           </View>
           
           {/* Quantity Selector */}
@@ -126,6 +167,18 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
+  },
+  centered: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#fff',
+    paddingHorizontal: 20,
+  },
+  errorText: {
+    color: '#ff4c4c',
+    fontSize: 14,
+    textAlign: 'center',
   },
   carouselContainer: {
     alignItems: 'center',
@@ -223,8 +276,7 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: 'bold',
     fontSize: 16,
-  }
-  ,
+  },
   addToCartButtonDisabled: {
     backgroundColor: '#ccc',
   },
