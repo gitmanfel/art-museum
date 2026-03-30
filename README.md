@@ -2,6 +2,17 @@
 
 > **👉 [View Project Portfolio & Demo](PORTFOLIO.md)** — Comprehensive showcase of features, architecture, and technical implementation without source code exposure.
 
+## Demo day quick commands
+
+- From repo root, run seeded-data validation:
+	- `npm run demo:health`
+- Run backend tests:
+	- `npm run test:backend`
+- Run frontend tests:
+	- `npm run test:frontend`
+- Run full regression check:
+	- `npm run test:all`
+
 ## Environment variables
 
 ### Password reset URL

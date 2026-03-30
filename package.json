@@ -4,7 +4,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "demo:health": "npm --prefix backend run demo:health",
+    "test:backend": "npm --prefix backend test",
+    "test:frontend": "npm --prefix frontend test",
+    "test:all": "npm --prefix backend test && npm --prefix frontend test"
   },
   "keywords": [],
   "author": "",
