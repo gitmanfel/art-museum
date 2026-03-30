@@ -40,26 +40,27 @@
 
     <article class="detail">
       <h2>Architecture Design</h2>
-      <div class="arch-diagram" aria-label="Architecture design diagram">
-        <section class="arch-node">
-          <span class="arch-kicker">Frontend</span>
-          <strong>Interaction Layer</strong>
-          <p>Users move through discovery, auth, cart, checkout, and admin screens in a domain-based client.</p>
+      <div class="system-diagram compact" aria-label="System architecture diagram">
+        <section class="system-tier">
+          <span class="system-tier-label">Case Study System View</span>
+          <div class="system-row">
+            <article class="system-box">
+              <h3>Interaction Layer</h3>
+              <p>Users move through discovery, auth, cart, checkout, and admin screens in a domain-based client.</p>
+            </article>
+            <article class="system-box">
+              <h3>Business Logic Layer</h3>
+              <p>The API translates user actions into validated business operations and protected workflows.</p>
+            </article>
+            <article class="system-box">
+              <h3>Relational Data Layer</h3>
+              <p>SQLite persistence supports catalogue data, users, orders, contacts, and operational records.</p>
+            </article>
+          </div>
         </section>
-        <div class="arch-arrow" aria-hidden="true">&rarr;</div>
-        <section class="arch-node">
-          <span class="arch-kicker">Backend</span>
-          <strong>Business Logic Layer</strong>
-          <p>The API translates user actions into validated business operations and protected workflows.</p>
-        </section>
-        <div class="arch-arrow" aria-hidden="true">&rarr;</div>
-        <section class="arch-node">
-          <span class="arch-kicker">Storage</span>
-          <strong>Relational Data Layer</strong>
-          <p>SQLite persistence supports catalogue data, users, orders, contacts, and operational records.</p>
-        </section>
+        <div class="system-flow">UI journey -> validated workflow -> stored operational data</div>
       </div>
-      <p class="arch-note">This drawing makes the implementation story visible from UI action to stored data.</p>
+      <p class="system-caption">This board makes the implementation story visible from UI action to stored data.</p>
       <ul class="clean">
         <li>The system is designed around three explicit layers: client experience, API and business orchestration, and relational persistence.</li>
         <li>Frontend contexts and screens support the user journey, while backend routes, controllers, services, and repositories isolate responsibilities.</li>

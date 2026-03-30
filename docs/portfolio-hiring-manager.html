@@ -40,26 +40,27 @@
     </article>
     <article class="detail">
       <h2>Architecture Design View</h2>
-      <div class="arch-diagram" aria-label="Architecture design diagram">
-        <section class="arch-node">
-          <span class="arch-kicker">Experience Layer</span>
-          <strong>Frontend Domains</strong>
-          <p>Screen flows are organized by auth, catalogue, cart, checkout, and admin responsibilities.</p>
+      <div class="system-diagram compact" aria-label="System architecture diagram">
+        <section class="system-tier">
+          <span class="system-tier-label">Management View</span>
+          <div class="system-row">
+            <article class="system-box">
+              <h3>Frontend Domains</h3>
+              <p>Screen flows are organized by auth, catalogue, cart, checkout, and admin responsibilities.</p>
+            </article>
+            <article class="system-box">
+              <h3>API Orchestration</h3>
+              <p>Controllers, services, and middleware define ownership boundaries and reduce regression risk.</p>
+            </article>
+            <article class="system-box">
+              <h3>Repository Access</h3>
+              <p>Repositories keep SQL and data behavior isolated, which improves maintainability and onboarding.</p>
+            </article>
+          </div>
         </section>
-        <div class="arch-arrow" aria-hidden="true">&rarr;</div>
-        <section class="arch-node">
-          <span class="arch-kicker">Execution Layer</span>
-          <strong>API Orchestration</strong>
-          <p>Controllers, services, and middleware define ownership boundaries and reduce regression risk.</p>
-        </section>
-        <div class="arch-arrow" aria-hidden="true">&rarr;</div>
-        <section class="arch-node">
-          <span class="arch-kicker">Persistence Layer</span>
-          <strong>Repository Access</strong>
-          <p>Repositories keep SQL and data behavior isolated, which improves maintainability and onboarding.</p>
-        </section>
+        <div class="system-flow">Ownership boundaries across experience, execution, and persistence</div>
       </div>
-      <p class="arch-note">The drawing highlights why the architecture is manageable: each layer has a clear role and ownership boundary.</p>
+      <p class="system-caption">The board highlights why the architecture is manageable: each layer has a clear role and ownership boundary.</p>
       <ul class="clean">
         <li>Architecture design follows a clear separation of concerns across frontend state, API orchestration, and repository-backed data access.</li>
         <li>The structure supports onboarding, lower regression risk, and easier ownership boundaries across product and engineering work.</li>

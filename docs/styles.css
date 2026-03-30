@@ -361,6 +361,22 @@ h1 {
   line-height: 1.6;
 }
 
+.system-diagram.compact {
+  padding: 18px;
+}
+
+.system-diagram.compact .system-tier {
+  margin-top: 0;
+}
+
+.system-diagram.compact .system-box {
+  min-height: 136px;
+}
+
+.system-diagram.compact .system-flow {
+  margin-top: 12px;
+}
+
 @media (max-width: 760px) {
   .arch-diagram {
     grid-template-columns: 1fr;
@@ -390,6 +406,10 @@ h1 {
   }
 
   .system-tier {
+    padding: 14px;
+  }
+
+  .system-diagram.compact {
     padding: 14px;
   }
 }

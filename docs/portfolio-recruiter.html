@@ -40,26 +40,27 @@
     </article>
     <article class="detail">
       <h2>Architecture Design Summary</h2>
-      <div class="arch-diagram" aria-label="Architecture design diagram">
-        <section class="arch-node">
-          <span class="arch-kicker">Client Layer</span>
-          <strong>User Experience</strong>
-          <p>Visitors browse, log in, shop, and manage flows through a structured frontend experience.</p>
+      <div class="system-diagram compact" aria-label="System architecture diagram">
+        <section class="system-tier">
+          <span class="system-tier-label">Architecture Snapshot</span>
+          <div class="system-row">
+            <article class="system-box">
+              <h3>User Experience</h3>
+              <p>Visitors browse, log in, shop, and manage flows through a structured frontend experience.</p>
+            </article>
+            <article class="system-box">
+              <h3>API and Security</h3>
+              <p>The backend manages requests, permissions, checkout logic, and system rules.</p>
+            </article>
+            <article class="system-box">
+              <h3>Catalogue and Orders</h3>
+              <p>The data layer stores users, artworks, products, orders, messages, and admin records.</p>
+            </article>
+          </div>
         </section>
-        <div class="arch-arrow" aria-hidden="true">&rarr;</div>
-        <section class="arch-node">
-          <span class="arch-kicker">Platform Logic</span>
-          <strong>API and Security</strong>
-          <p>The backend manages requests, permissions, checkout logic, and system rules.</p>
-        </section>
-        <div class="arch-arrow" aria-hidden="true">&rarr;</div>
-        <section class="arch-node">
-          <span class="arch-kicker">Business Data</span>
-          <strong>Catalogue and Orders</strong>
-          <p>The data layer stores users, artworks, products, orders, messages, and admin records.</p>
-        </section>
+        <div class="system-flow">Screening view of the full stack: frontend -> backend -> business data</div>
       </div>
-      <p class="arch-note">This diagram makes the system design visible at a glance for first-round screening.</p>
+      <p class="system-caption">This board makes the system design visible at a glance for first-round screening.</p>
       <ul class="clean">
         <li>Designed as a layered full-stack system with a frontend client, API boundary, and relational data layer.</li>
         <li>Separated user-facing screens from backend business logic and database access, which improves maintainability and interview traceability.</li>

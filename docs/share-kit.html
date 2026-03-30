@@ -23,24 +23,25 @@
       <h2>LinkedIn One-Liner</h2>
       <p class="sub">Shipped a portfolio-safe full-stack museum platform with role-aware workflows, automated test coverage, architecture mapping, and audience-specific project presentation pages.</p>
       <h2>Architecture Design Summary</h2>
-      <div class="arch-diagram" aria-label="Architecture design diagram">
-        <section class="arch-node">
-          <span class="arch-kicker">Client</span>
-          <strong>React Native Experience</strong>
-          <p>Reusable screens and state contexts structure user and admin journeys.</p>
+      <div class="system-diagram compact" aria-label="System architecture diagram">
+        <section class="system-tier">
+          <span class="system-tier-label">Messaging View</span>
+          <div class="system-row">
+            <article class="system-box">
+              <h3>React Native Experience</h3>
+              <p>Reusable screens and state contexts structure user and admin journeys.</p>
+            </article>
+            <article class="system-box">
+              <h3>Layered Express Backend</h3>
+              <p>Controllers, services, and middleware isolate requests, business rules, and security.</p>
+            </article>
+            <article class="system-box">
+              <h3>SQLite Repositories</h3>
+              <p>Repository modules keep data access predictable and easy to explain in outreach.</p>
+            </article>
+          </div>
         </section>
-        <div class="arch-arrow" aria-hidden="true">&rarr;</div>
-        <section class="arch-node">
-          <span class="arch-kicker">API</span>
-          <strong>Layered Express Backend</strong>
-          <p>Controllers, services, and middleware isolate requests, business rules, and security.</p>
-        </section>
-        <div class="arch-arrow" aria-hidden="true">&rarr;</div>
-        <section class="arch-node">
-          <span class="arch-kicker">Data</span>
-          <strong>SQLite Repositories</strong>
-          <p>Repository modules keep data access predictable and easy to explain in outreach.</p>
-        </section>
+        <div class="system-flow">Short-form architecture summary for CV, outreach, and interviews</div>
       </div>
       <p class="sub">The architecture design combines a React Native client, layered Express API, and repository-backed SQLite data model so reviewers can understand both product delivery and system structure quickly.</p>
     </article>

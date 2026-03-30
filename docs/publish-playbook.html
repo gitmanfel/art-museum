@@ -27,26 +27,27 @@
         <li><strong>Case study and share kit:</strong> narrative and reusable wording for outreach and interviews.</li>
       </ul>
       <h2>Architecture Design Coverage</h2>
-      <div class="arch-diagram" aria-label="Architecture design diagram">
-        <section class="arch-node">
-          <span class="arch-kicker">Page 1</span>
-          <strong>Client Design</strong>
-          <p>Each audience page now shows the client-side experience and state structure visually.</p>
+      <div class="system-diagram compact" aria-label="System architecture diagram">
+        <section class="system-tier">
+          <span class="system-tier-label">Review Pack Coverage</span>
+          <div class="system-row">
+            <article class="system-box">
+              <h3>Client Design</h3>
+              <p>Each audience page shows the client-side experience and state structure visually.</p>
+            </article>
+            <article class="system-box">
+              <h3>API Design</h3>
+              <p>The review pack consistently surfaces the layered API design and business flow.</p>
+            </article>
+            <article class="system-box">
+              <h3>Data Design</h3>
+              <p>Repository-backed persistence is visible across the site, not hidden in one technical page.</p>
+            </article>
+          </div>
         </section>
-        <div class="arch-arrow" aria-hidden="true">&rarr;</div>
-        <section class="arch-node">
-          <span class="arch-kicker">Page 2</span>
-          <strong>API Design</strong>
-          <p>The same review pack consistently surfaces the layered API design and business flow.</p>
-        </section>
-        <div class="arch-arrow" aria-hidden="true">&rarr;</div>
-        <section class="arch-node">
-          <span class="arch-kicker">Page 3</span>
-          <strong>Data Design</strong>
-          <p>Repository-backed persistence is visible across the site, not hidden in one technical page.</p>
-        </section>
+        <div class="system-flow">Shared architecture story across recruiter, manager, IT, and case-study paths</div>
       </div>
-      <p class="arch-note">The architecture drawing is repeated across the review pack so the system design remains visible in every audience flow.</p>
+      <p class="system-caption">The architecture board is repeated across the review pack so the system design remains visible in every audience flow.</p>
       <ul class="clean">
         <li>Every public page now includes architecture design context so reviewers do not need to switch pages to understand the system structure.</li>
         <li>The shared architecture story is a layered design: client, API, and data model, with testing and operations treated as part of the design.</li>
