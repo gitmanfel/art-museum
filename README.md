@@ -9,6 +9,8 @@
 
 > **🧭 Full Architecture Map:** [ARCHITECTURE.md](ARCHITECTURE.md)
 
+> **Pages 404 note:** root-level redirect pages are included so links like `/portfolio-showcase.html` and `/architecture.html` work whether Pages serves the repo root or `docs/` deployment.
+
 ## Demo day quick commands
 
 - From repo root, run seeded-data validation:
