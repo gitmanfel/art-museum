@@ -5,7 +5,7 @@ import {
 } from 'react-native';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
-import { createCheckoutIntent, getCheckoutStatus } from '../services/checkout';
+import { createCheckoutIntent } from '../services/checkout';
 
 const CartScreen = ({ navigation }) => {
   const { items, total, loading, error, loadCart, removeItem, clearCart } = useCart();
@@ -34,28 +34,19 @@ const CartScreen = ({ navigation }) => {
     try {
       const intent = await createCheckoutIntent();
 
-      let checkoutState = {
-        fulfilled: intent.fulfilled,
-        entitlementsChanged: intent.entitlementsChanged,
-        userRole: intent.userRole,
-      };
-
-      if (!checkoutState.fulfilled && intent.paymentIntentId) {
-        checkoutState = await getCheckoutStatus(intent.paymentIntentId);
-      }
-
-      if (checkoutState.fulfilled) {
+      if (intent.fulfilled) {
         await Promise.all([loadCart(), refreshProfile()]);
       }
 
-      const memberLine = checkoutState.entitlementsChanged
-        ? `\nMember status activated: ${String(checkoutState.userRole || '').toUpperCase()}`
-        : '';
-
-      Alert.alert(
-        checkoutState.fulfilled ? 'Checkout Complete' : 'Checkout Ready',
-        `Provider: ${intent.provider}\nAmount: $${(intent.amountCents / 100).toFixed(2)}\nStatus: ${intent.status}${memberLine}`
-      );
+      navigation.navigate('CheckoutStatus', {
+        paymentIntentId: intent.paymentIntentId,
+        provider: intent.provider,
+        amountCents: intent.amountCents,
+        initialStatus: intent.status,
+        initialFulfilled: intent.fulfilled,
+        initialEntitlementsChanged: intent.entitlementsChanged,
+        initialUserRole: intent.userRole,
+      });
     } catch (e) {
       const msg = e.response?.data?.error || 'Could not start checkout.';
       Alert.alert('Checkout Error', msg);

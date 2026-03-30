@@ -8,6 +8,7 @@ import LoginScreen from './screens/LoginScreen';
 import RegisterScreen from './screens/RegisterScreen';
 import ResetPasswordScreen from './screens/ResetPasswordScreen';
 import CartScreen from './screens/CartScreen';
+import CheckoutStatusScreen from './screens/CheckoutStatusScreen';
 import MainNavigator from './navigation/MainNavigator';
 
 const Stack = createNativeStackNavigator();
@@ -37,6 +38,11 @@ export default function App() {
               name="Cart"
               component={CartScreen}
               options={{ title: 'Your Cart', headerTintColor: '#000' }}
+            />
+            <Stack.Screen
+              name="CheckoutStatus"
+              component={CheckoutStatusScreen}
+              options={{ title: 'Checkout Status', headerTintColor: '#000' }}
             />
             {/* The MainNavigator contains the Drawer and the rest of the app */}
             <Stack.Screen
