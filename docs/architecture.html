@@ -21,6 +21,14 @@
       </ul>
     </article>
     <article class="detail">
+      <h2>Architecture Design Principles</h2>
+      <ul class="clean">
+        <li><strong>Separation of concerns:</strong> routing, business logic, and persistence are intentionally isolated.</li>
+        <li><strong>Feature traceability:</strong> screens map to service calls, service calls map to API endpoints, and API endpoints map to repositories.</li>
+        <li><strong>Operational clarity:</strong> startup checks, monitoring hooks, and configuration validation are treated as part of the architecture design.</li>
+      </ul>
+    </article>
+    <article class="detail">
       <h2>Feature Specifications</h2>
       <ul class="clean">
         <li><strong>Authentication:</strong> register/login, token-based session handling, secure storage utilities, reset-email and token flow support.</li>
