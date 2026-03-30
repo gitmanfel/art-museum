@@ -60,6 +60,9 @@ jobs:
       - name: Run Tests
         run: npm test
         working-directory: ./backend
+      - name: Run Demo Health Check
+        run: npm run demo:health
+        working-directory: ./backend
 
   quick-frontend-tests:
     name: Quick Frontend Tests (PR)
@@ -139,6 +142,9 @@ jobs:
           REQUIRE_SMTP_IN_PRODUCTION: false
       - name: Run Tests
         run: npm test
+        working-directory: ./backend
+      - name: Run Demo Health Check
+        run: npm run demo:health
         working-directory: ./backend
 
   full-frontend-tests:
