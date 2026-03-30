@@ -54,6 +54,26 @@
 
       <article class="detail">
         <h2>Architecture Design</h2>
+        <div class="arch-diagram" aria-label="Architecture design diagram">
+          <section class="arch-node">
+            <span class="arch-kicker">Client Layer</span>
+            <strong>React Native App</strong>
+            <p>Screens, navigation, auth state, and cart state organize the visitor and admin experience.</p>
+          </section>
+          <div class="arch-arrow" aria-hidden="true">&rarr;</div>
+          <section class="arch-node">
+            <span class="arch-kicker">API Layer</span>
+            <strong>Express Services</strong>
+            <p>Routes, controllers, services, and middleware handle requests, business rules, and security checks.</p>
+          </section>
+          <div class="arch-arrow" aria-hidden="true">&rarr;</div>
+          <section class="arch-node">
+            <span class="arch-kicker">Data Layer</span>
+            <strong>SQLite Repositories</strong>
+            <p>Repository modules isolate persistence for catalogue data, users, orders, contacts, and admin records.</p>
+          </section>
+        </div>
+        <p class="arch-note">The visible design is a three-layer flow: client interactions move through the API boundary and into repository-backed storage.</p>
         <ul class="clean">
           <li><strong>Client layer:</strong> React Native screens, navigation, auth context, and cart context organize the user experience by domain.</li>
           <li><strong>API layer:</strong> Express routes, controllers, services, and repositories separate HTTP concerns from business logic and persistence.</li>

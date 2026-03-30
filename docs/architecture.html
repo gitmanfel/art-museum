@@ -22,6 +22,26 @@
     </article>
     <article class="detail">
       <h2>Architecture Design Principles</h2>
+      <div class="arch-diagram" aria-label="Architecture design diagram">
+        <section class="arch-node">
+          <span class="arch-kicker">Client</span>
+          <strong>React Native UI</strong>
+          <p>Screens, navigation, auth context, and cart context capture interactions and domain state.</p>
+        </section>
+        <div class="arch-arrow" aria-hidden="true">&rarr;</div>
+        <section class="arch-node">
+          <span class="arch-kicker">Service Boundary</span>
+          <strong>Express API</strong>
+          <p>Routes, controllers, services, and middleware enforce business rules, auth, and request handling.</p>
+        </section>
+        <div class="arch-arrow" aria-hidden="true">&rarr;</div>
+        <section class="arch-node">
+          <span class="arch-kicker">Persistence</span>
+          <strong>Repository + SQLite</strong>
+          <p>Repositories isolate SQL access for catalogue, orders, contacts, users, reset tokens, and admin data.</p>
+        </section>
+      </div>
+      <p class="arch-note">The visual design shows the core request path: client action, API execution, and repository-backed persistence.</p>
       <ul class="clean">
         <li><strong>Separation of concerns:</strong> routing, business logic, and persistence are intentionally isolated.</li>
         <li><strong>Feature traceability:</strong> screens map to service calls, service calls map to API endpoints, and API endpoints map to repositories.</li>

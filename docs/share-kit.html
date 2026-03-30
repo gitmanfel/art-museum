@@ -23,6 +23,25 @@
       <h2>LinkedIn One-Liner</h2>
       <p class="sub">Shipped a portfolio-safe full-stack museum platform with role-aware workflows, automated test coverage, architecture mapping, and audience-specific project presentation pages.</p>
       <h2>Architecture Design Summary</h2>
+      <div class="arch-diagram" aria-label="Architecture design diagram">
+        <section class="arch-node">
+          <span class="arch-kicker">Client</span>
+          <strong>React Native Experience</strong>
+          <p>Reusable screens and state contexts structure user and admin journeys.</p>
+        </section>
+        <div class="arch-arrow" aria-hidden="true">&rarr;</div>
+        <section class="arch-node">
+          <span class="arch-kicker">API</span>
+          <strong>Layered Express Backend</strong>
+          <p>Controllers, services, and middleware isolate requests, business rules, and security.</p>
+        </section>
+        <div class="arch-arrow" aria-hidden="true">&rarr;</div>
+        <section class="arch-node">
+          <span class="arch-kicker">Data</span>
+          <strong>SQLite Repositories</strong>
+          <p>Repository modules keep data access predictable and easy to explain in outreach.</p>
+        </section>
+      </div>
       <p class="sub">The architecture design combines a React Native client, layered Express API, and repository-backed SQLite data model so reviewers can understand both product delivery and system structure quickly.</p>
     </article>
     <div class="top-actions">
