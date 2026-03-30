@@ -6,12 +6,18 @@
 
 - From repo root, run seeded-data validation:
 	- `npm run demo:health`
+- Run complete demo verification in one command:
+	- `npm run verify:demo`
 - Run backend tests:
 	- `npm run test:backend`
 - Run frontend tests:
 	- `npm run test:frontend`
 - Run full regression check:
 	- `npm run test:all`
+- Start backend from root:
+	- `npm run start:backend`
+- Start frontend web from root:
+	- `npm run start:frontend:web`
 
 ## Environment variables
 

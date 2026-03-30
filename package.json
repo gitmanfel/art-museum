@@ -4,10 +4,13 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "start:backend": "npm --prefix backend start",
+    "start:frontend:web": "npm --prefix frontend run web",
     "demo:health": "npm --prefix backend run demo:health",
     "test:backend": "npm --prefix backend test",
     "test:frontend": "npm --prefix frontend test",
-    "test:all": "npm --prefix backend test && npm --prefix frontend test"
+    "test:all": "npm --prefix backend test && npm --prefix frontend test",
+    "verify:demo": "npm run demo:health && npm run test:all"
   },
   "keywords": [],
   "author": "",
