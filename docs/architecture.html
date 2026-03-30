@@ -21,27 +21,71 @@
       </ul>
     </article>
     <article class="detail">
-      <h2>Architecture Design Principles</h2>
-      <div class="arch-diagram" aria-label="Architecture design diagram">
-        <section class="arch-node">
-          <span class="arch-kicker">Client</span>
-          <strong>React Native UI</strong>
-          <p>Screens, navigation, auth context, and cart context capture interactions and domain state.</p>
+      <h2>System Architecture Diagram</h2>
+      <div class="system-diagram" aria-label="System architecture diagram">
+        <section class="system-tier">
+          <span class="system-tier-label">Experience Layer</span>
+          <div class="system-row">
+            <article class="system-box">
+              <h3>Visitor Experience</h3>
+              <p>Home, exhibitions, artists, collections, shop, tickets, membership, and contact flows in the React Native client.</p>
+            </article>
+            <article class="system-box">
+              <h3>Authenticated Sessions</h3>
+              <p>Login, registration, password reset, secure storage, cart state, and checkout status handled in client contexts.</p>
+            </article>
+            <article class="system-box">
+              <h3>Admin Views</h3>
+              <p>Dashboard, content management, and order-related review paths exposed through role-aware frontend screens.</p>
+            </article>
+          </div>
         </section>
-        <div class="arch-arrow" aria-hidden="true">&rarr;</div>
-        <section class="arch-node">
-          <span class="arch-kicker">Service Boundary</span>
-          <strong>Express API</strong>
-          <p>Routes, controllers, services, and middleware enforce business rules, auth, and request handling.</p>
+
+        <div class="system-flow">HTTP requests | JWT auth | role-aware navigation</div>
+
+        <section class="system-tier">
+          <span class="system-tier-label">Application Layer</span>
+          <div class="system-row">
+            <article class="system-box">
+              <h3>Route and Controller Layer</h3>
+              <p>Express routes and controllers convert HTTP input into bounded feature handlers for auth, catalogue, cart, checkout, contact, and admin.</p>
+            </article>
+            <article class="system-box">
+              <h3>Security and Middleware</h3>
+              <p>Auth middleware, rate limiting, startup checks, and request validation enforce access control and operational safety.</p>
+            </article>
+            <article class="system-box">
+              <h3>Service Layer</h3>
+              <p>Payment abstraction, mailing, reset-email handling, monitoring, config checks, and startup status sit behind application services.</p>
+            </article>
+            <article class="system-box">
+              <h3>Repository Boundary</h3>
+              <p>Repositories isolate persistence logic so SQL access stays separated from transport and business orchestration.</p>
+            </article>
+          </div>
         </section>
-        <div class="arch-arrow" aria-hidden="true">&rarr;</div>
-        <section class="arch-node">
-          <span class="arch-kicker">Persistence</span>
-          <strong>Repository + SQLite</strong>
-          <p>Repositories isolate SQL access for catalogue, orders, contacts, users, reset tokens, and admin data.</p>
+
+        <div class="system-flow">Repository calls | payment provider | email delivery | diagnostics</div>
+
+        <section class="system-tier">
+          <span class="system-tier-label">Data and Integration Layer</span>
+          <div class="system-row">
+            <article class="system-box">
+              <h3>SQLite Core Data</h3>
+              <p>Users, products, artists, artworks, collections, exhibitions, orders, cart state, reset tokens, contacts, and audit data.</p>
+            </article>
+            <article class="system-box">
+              <h3>External Integrations</h3>
+              <p>Payment provider integration, email delivery mode, and notification or monitoring hooks support operational workflows.</p>
+            </article>
+            <article class="system-box">
+              <h3>Quality and Delivery</h3>
+              <p>Backend tests, frontend tests, demo-health checks, CI workflows, and Pages publication form the delivery-side architecture.</p>
+            </article>
+          </div>
         </section>
+        <p class="system-caption">This board shows the full request path and responsibility split: user interaction enters the client, flows through secured API orchestration, and reaches repository-backed persistence and external integrations.</p>
       </div>
-      <p class="arch-note">The visual design shows the core request path: client action, API execution, and repository-backed persistence.</p>
       <ul class="clean">
         <li><strong>Separation of concerns:</strong> routing, business logic, and persistence are intentionally isolated.</li>
         <li><strong>Feature traceability:</strong> screens map to service calls, service calls map to API endpoints, and API endpoints map to repositories.</li>

@@ -248,6 +248,119 @@ h1 {
   border-left: 2px solid rgba(255, 90, 79, 0.45);
 }
 
+.system-diagram {
+  position: relative;
+  margin-top: 16px;
+  padding: 20px;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background:
+    radial-gradient(circle at top left, rgba(255, 90, 79, 0.14), transparent 28%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.01)),
+    linear-gradient(180deg, #10151d, #171d27);
+  overflow: hidden;
+}
+
+.system-diagram::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+  background-size: 30px 30px;
+  opacity: 0.35;
+  pointer-events: none;
+}
+
+.system-tier {
+  position: relative;
+  z-index: 1;
+  margin-top: 14px;
+  padding: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.system-tier:first-child {
+  margin-top: 0;
+}
+
+.system-tier-label {
+  display: inline-block;
+  margin-bottom: 12px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--accent-2);
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.system-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 14px;
+}
+
+.system-box {
+  position: relative;
+  min-height: 120px;
+  padding: 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.025));
+  box-shadow: 0 16px 30px rgba(0, 0, 0, 0.22);
+}
+
+.system-box::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 4px;
+  border-radius: 14px 0 0 14px;
+  background: linear-gradient(180deg, var(--accent), rgba(255, 210, 206, 0.45));
+}
+
+.system-box h3 {
+  margin: 0 0 8px;
+  font-size: 1rem;
+}
+
+.system-box p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.55;
+  font-size: 0.93rem;
+}
+
+.system-flow {
+  position: relative;
+  z-index: 1;
+  margin: 10px auto 0;
+  width: fit-content;
+  max-width: 100%;
+  padding: 7px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 90, 79, 0.28);
+  background: rgba(255, 90, 79, 0.08);
+  color: var(--accent-2);
+  font-size: 0.76rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.system-caption {
+  position: relative;
+  z-index: 1;
+  margin-top: 14px;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
 @media (max-width: 760px) {
   .arch-diagram {
     grid-template-columns: 1fr;
@@ -270,6 +383,14 @@ h1 {
     border-top: 2px solid var(--accent);
     border-right: 2px solid var(--accent);
     transform: rotate(135deg);
+  }
+
+  .system-diagram {
+    padding: 16px;
+  }
+
+  .system-tier {
+    padding: 14px;
   }
 }
 
