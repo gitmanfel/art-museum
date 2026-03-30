@@ -1,0 +1,197 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  changes:
+    name: Detect Changed Areas
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      backend: ${{ steps.filter.outputs.backend }}
+      frontend: ${{ steps.filter.outputs.frontend }}
+      shared: ${{ steps.filter.outputs.shared }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Detect changed paths
+        id: filter
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            backend:
+              - 'backend/**'
+            frontend:
+              - 'frontend/**'
+            shared:
+              - '.github/workflows/**'
+              - 'README.md'
+              - 'package.json'
+              - '.gitignore'
+
+  quick-backend-tests:
+    name: Quick Backend Tests (PR)
+    needs: changes
+    if: github.event_name == 'pull_request' && (needs.changes.outputs.backend == 'true' || needs.changes.outputs.shared == 'true')
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18.x'
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+      - name: Install Dependencies
+        run: npm ci
+        working-directory: ./backend
+      - name: Run Tests
+        run: npm test
+        working-directory: ./backend
+
+  quick-frontend-tests:
+    name: Quick Frontend Tests (PR)
+    needs: changes
+    if: github.event_name == 'pull_request' && (needs.changes.outputs.frontend == 'true' || needs.changes.outputs.shared == 'true')
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18.x'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+      - name: Install Dependencies
+        run: npm ci
+        working-directory: ./frontend
+      - name: Run Tests
+        run: npm test
+        working-directory: ./frontend
+
+  full-config-guard-negative:
+    name: Full Config Guard Negative Test (Push)
+    needs: changes
+    if: github.event_name == 'push' && (needs.changes.outputs.backend == 'true' || needs.changes.outputs.shared == 'true')
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18.x'
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+      - name: Install Dependencies
+        run: npm ci
+        working-directory: ./backend
+      - name: Assert Config Check Fails With Fallback JWT Secret
+        working-directory: ./backend
+        env:
+          NODE_ENV: production
+          JWT_SECRET: fallback_secret
+          REQUIRE_SMTP_IN_PRODUCTION: false
+        run: |
+          if npm run check:config; then
+            echo "check:config unexpectedly passed with fallback JWT secret"
+            exit 1
+          else
+            echo "check:config failed as expected with fallback JWT secret"
+          fi
+
+  full-backend-gates:
+    name: Full Backend Gates (Push)
+    needs: changes
+    if: github.event_name == 'push' && (needs.changes.outputs.backend == 'true' || needs.changes.outputs.shared == 'true')
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18.x'
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+      - name: Install Dependencies
+        run: npm ci
+        working-directory: ./backend
+      - name: Run Production Config Check
+        run: npm run check:config
+        working-directory: ./backend
+        env:
+          NODE_ENV: production
+          JWT_SECRET: ci-production-jwt-secret
+          REQUIRE_SMTP_IN_PRODUCTION: false
+      - name: Run Tests
+        run: npm test
+        working-directory: ./backend
+
+  full-frontend-tests:
+    name: Full Frontend Tests (Push)
+    needs: changes
+    if: github.event_name == 'push' && (needs.changes.outputs.frontend == 'true' || needs.changes.outputs.shared == 'true')
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18.x'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+      - name: Install Dependencies
+        run: npm ci
+        working-directory: ./frontend
+      - name: Run Tests
+        run: npm test
+        working-directory: ./frontend
+
+  ci-status:
+    name: CI Status
+    if: always()
+    needs:
+      - changes
+      - quick-backend-tests
+      - quick-frontend-tests
+      - full-config-guard-negative
+      - full-backend-gates
+      - full-frontend-tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Validate job outcomes
+        env:
+          QUICK_BACKEND: ${{ needs.quick-backend-tests.result }}
+          QUICK_FRONTEND: ${{ needs.quick-frontend-tests.result }}
+          FULL_NEGATIVE: ${{ needs.full-config-guard-negative.result }}
+          FULL_BACKEND: ${{ needs.full-backend-gates.result }}
+          FULL_FRONTEND: ${{ needs.full-frontend-tests.result }}
+        run: |
+          echo "quick-backend-tests=${QUICK_BACKEND}"
+          echo "quick-frontend-tests=${QUICK_FRONTEND}"
+          echo "full-config-guard-negative=${FULL_NEGATIVE}"
+          echo "full-backend-gates=${FULL_BACKEND}"
+          echo "full-frontend-tests=${FULL_FRONTEND}"
+
+          for result in "$QUICK_BACKEND" "$QUICK_FRONTEND" "$FULL_NEGATIVE" "$FULL_BACKEND" "$FULL_FRONTEND"; do
+            if [ "$result" != "success" ] && [ "$result" != "skipped" ]; then
+              echo "A required CI job failed or was cancelled."
+              exit 1
+            fi
+          done
