@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Redirecting to The Art Museum Review Pack...</title>
+  <script>
+    (function () {
+      var path = window.location.pathname;
+      var redirects = {
+        '/art-museum/PORTFOLIO.html': '/art-museum/portfolio-showcase.html',
+        '/art-museum/ARCHITECTURE.html': '/art-museum/architecture.html'
+      };
+
+      if (redirects[path]) {
+        window.location.replace(redirects[path]);
+      }
+    })();
+  </script>
+</head>
+<body>
+  <p>If you are not redirected automatically, open <a href="./index.html">The Art Museum Review Pack</a>.</p>
+</body>
+</html>
